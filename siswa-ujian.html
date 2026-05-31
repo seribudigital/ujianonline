@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartExam-Online | Lembar Ujian Siswa</title>
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- MathJax Configuration and Script CDN for LaTeX rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Top bar with active student details & log out -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <i data-lucide="graduation-cap" style="color: var(--primary);"></i>
+      SmartExam<span>Online</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <div style="text-align: right;" id="student-pill">
+        <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-dark);" id="student-name-pill">-</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);" id="student-nisn-pill">NISN: -</div>
+      </div>
+      <button class="btn btn-secondary" id="btn-logout" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+        <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Keluar Sesi
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN EXAM VIEW CONTAINER -->
+  <div class="container" id="main-exam-view" style="display: none;">
+    
+    <!-- Split Layout Grid -->
+    <div class="exam-layout">
+      
+      <!-- Left Column: Main Exam Area (Kop Surat & Questions) -->
+      <div class="exam-main">
+        
+        <!-- Kop Surat Ujian Resmi (Official Exam Letterhead) -->
+        <div class="kop-surat">
+          <div class="kop-header">
+            <div class="kop-logo">
+              <!-- Placeholder logo simulating Ministry seal -->
+              <i data-lucide="landmark" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
+            </div>
+            <div class="kop-instansi">
+              <h2>Kementerian Agama Republik Indonesia</h2>
+              <h3 id="kop-madrasah">Nama Madrasah Aliyah</h3>
+              <p>Alamat Surat Resmi Madrasah • Telp/Fax • Website Madrasah</p>
+            </div>
+          </div>
+
+          <div class="kop-title" id="kop-jenis-ujian">
+            LEMBAR JAWABAN UJIAN DARING (COMPUTER BASED TEST)
+          </div>
+
+          <!-- Identity Grid: Exam & Student Details -->
+          <div class="identitas-grid">
+            <!-- Column 1: Exam Metadata -->
+            <div class="identitas-kolom">
+              <div class="identitas-row">
+                <div class="identitas-label">Mata Pelajaran</div>
+                <div class="identitas-titikdua">:</div>
+                <div class="identitas-value" id="identitas-mapel">-</div>
+              </div>
+              <div class="identitas-row">
+                <div class="identitas-label">Kelas / Paket</div>
+                <div class="identitas-titikdua">:</div>
+                <div class="identitas-value" id="identitas-kelas-paket">-</div>
+              </div>
+              <div class="identitas-row">
+                <div class="identitas-label">Semester / TP</div>
+                <div class="identitas-titikdua">:</div>
+                <div class="identitas-value" id="identitas-semester-tp">-</div>
+              </div>
+              <div class="identitas-row">
+                <div class="identitas-label">Guru Pengampu</div>
+                <div class="identitas-titikdua">:</div>
+                <div class="identitas-value" id="identitas-guru">-</div>
+              </div>
+            </div>
+
+            <!-- Column 2: Student Metadata -->
+            <div class="identitas-kolom">
+              <div class="identitas-row">
+                <div class="identitas-label">Nama Lengkap</div>
+                <div class="identitas-titikdua">:</div>
+                <div class="identitas-value student-info" id="identitas-student-nama">-</div>
+              </div>
+              <div class="identitas-row">
+                <div class="identitas-label">NISN Siswa</div>
+                <div class="identitas-titikdua">:</div>
+                <div class="identitas-value student-info" id="identitas-student-nisn">-</div>
+              </div>
+              <div class="identitas-row">
+                <div class="identitas-label">Alokasi Waktu</div>
+                <div class="identitas-titikdua">:</div>
+                <div class="identitas-value" id="identitas-durasi">-</div>
+              </div>
+              <div class="identitas-row">
+                <div class="identitas-label">Status Sesi</div>
+                <div class="identitas-titikdua">:</div>
+                <div class="identitas-value" style="color: var(--success);" id="identitas-status">
+                  <span class="badge badge-success">Terverifikasi</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question List Container -->
+        <div class="soal-container" id="soal-container">
+          <!-- Dynamically populated question cards -->
+        </div>
+
+        <!-- Bottom Submit Section -->
+        <div style="margin: 3rem 0; display: flex; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+          <button class="btn btn-primary" id="btn-submit-exam-bottom" style="padding: 1rem 2.5rem; font-size: 1.05rem; border-radius: var(--radius-md);">
+            <i data-lucide="check-square" style="width: 20px; height: 20px;"></i> Selesai Ujian & Kumpulkan
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Sticky Sidebar (Timer & Navigation) -->
+      <div class="exam-sidebar">
+        
+        <!-- Countdown Timer Card -->
+        <div class="card timer-card">
+          <h4 style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Sisa Waktu Ujian</h4>
+          <div class="timer-display" id="timer-display">
+            <span id="timer-hour">00</span><span class="timer-colon">:</span><span id="timer-min">00</span><span class="timer-colon">:</span><span id="timer-sec">00</span>
+          </div>
+          <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;" id="timer-alert-label">
+            <i data-lucide="info" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 2px;"></i> Jangan memuat ulang halaman
+          </div>
+        </div>
+        
+        <!-- Question Numbers Navigation Card -->
+        <div class="card">
+          <h4 style="margin-bottom: 1rem; font-size: 0.9rem; display: flex; align-items: center; justify-content: space-between;">
+            <span>Navigasi Soal</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500;" id="answered-badge">0 / 0 Terisi</span>
+          </h4>
+          <div class="nav-grid-container">
+            <div class="nav-grid" id="nav-grid">
+              <!-- Dynamically populated number buttons -->
+            </div>
+          </div>
+          <div style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+              <span style="width: 12px; height: 12px; background-color: #f1f5f9; border: 1px solid var(--border-color); border-radius: 3px; display: inline-block;"></span>
+              <span>Belum Dijawab</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+              <span style="width: 12px; height: 12px; background-color: var(--primary); border-radius: 3px; display: inline-block;"></span>
+              <span>Sudah Dijawab</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+              <span style="width: 12px; height: 12px; border: 1px dashed var(--border-color); background-color: #f1f5f9; border-radius: 3px; display: inline-block;"></span>
+              <span>Soal Uraian (Esai)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar Action Button -->
+        <button class="btn btn-primary" id="btn-submit-exam-sidebar" style="width: 100%; border-radius: var(--radius-md);">
+          <i data-lucide="check-square"></i> Kumpulkan Jawaban
+        </button>
+
+      </div>
+      
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2026 SmartExam-Online (Platform Ujian Siswa). All rights reserved.</p>
+    </footer>
+  </div>
+
+
+  <!-- ========================================================
+       PHASE 3 OVERLAYS (FULLSCREEN BLOCKER, LANDING, WARNINGS)
+       ======================================================== -->
+
+  <!-- Landing start-exam overlay (Before entering fullscreen) -->
+  <div class="start-exam-overlay" id="start-overlay" style="display: none;">
+    <div class="card start-exam-card">
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <div style="width: 54px; height: 54px; background-color: var(--primary-light); color: var(--primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem;">
+          <i data-lucide="shield-alert" style="width: 28px; height: 28px;"></i>
+        </div>
+        <h2>Konfirmasi Memulai Ujian</h2>
+        <p style="color: var(--text-muted); font-size: 0.85rem;" id="start-exam-meta-label">Mata Pelajaran: Matematika Peminatan</p>
+      </div>
+
+      <div style="margin-bottom: 2rem;">
+        <div class="rule-item">
+          <i data-lucide="expand" class="rule-icon"></i>
+          <div>
+            <strong style="font-size: 0.875rem; color: var(--text-dark);">Mode Layar Penuh (Mandatory Fullscreen)</strong>
+            <p style="font-size: 0.8rem; color: var(--text-body);">Ujian wajib dikerjakan dalam mode fullscreen. Menekan ESC atau keluar fullscreen akan memblokir pengerjaan ujian secara instan.</p>
+          </div>
+        </div>
+        <div class="rule-item">
+          <i data-lucide="shield-ban" class="rule-icon danger"></i>
+          <div>
+            <strong style="font-size: 0.875rem; color: var(--text-dark);">Sistem Keamanan Anti-Cheat Tab</strong>
+            <p style="font-size: 0.8rem; color: var(--text-body);">Siswa dilarang meninggalkan tab ujian, berpindah aplikasi atau meminimalkan browser. Toleransi: <strong>2 Kali</strong>. Deteksi ke-3 akan langsung mengunci lembar ujian secara sepihak!</p>
+          </div>
+        </div>
+        <div class="rule-item">
+          <i data-lucide="mouse-pointer-ban" class="rule-icon"></i>
+          <div>
+            <strong style="font-size: 0.875rem; color: var(--text-dark);">Blokir Salin Tempel & Akses Inspect</strong>
+            <p style="font-size: 0.8rem; color: var(--text-body);">Fungsi Klik Kanan (contextmenu), Copy, Paste, serta hotkey F12 & Ctrl+Shift+I telah dinonaktifkan sepenuhnya.</p>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="btn-start-exam" style="width: 100%; padding: 0.9rem; font-size: 1rem;">
+        <i data-lucide="play-circle"></i> Mulai & Masuk Mode Fullscreen
+      </button>
+    </div>
+  </div>
+
+
+  <!-- Fullscreen blocker overlay (Shown when user exits fullscreen) -->
+  <div class="fullscreen-block-overlay" id="fullscreen-block-overlay" style="display: none;">
+    <div class="fullscreen-block-card">
+      <div style="width: 70px; height: 70px; background-color: #fee2e2; color: var(--danger); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+        <i data-lucide="maximize-2" style="width: 35px; height: 35px;"></i>
+      </div>
+      <h2 style="color: var(--danger); margin-bottom: 0.5rem; font-family: var(--font-display);">Akses Ujian Diblokir!</h2>
+      <p style="color: var(--text-body); margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.5;">
+        Anda keluar dari mode Layar Penuh. Ujian wajib dikerjakan dalam mode fullscreen untuk meminimalkan kecurangan.
+      </p>
+      <button class="btn btn-danger" id="btn-restore-fullscreen" style="width: 100%; padding: 0.8rem;">
+        <i data-lucide="expand"></i> Kembali ke Mode Layar Penuh
+      </button>
+    </div>
+  </div>
+
+
+  <!-- Tab switch warning modal popup -->
+  <div class="warning-modal-overlay" id="warning-modal-overlay" style="display: none;">
+    <div class="warning-modal-card">
+      <div style="width: 60px; height: 60px; background-color: #fffbeb; color: var(--warning); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; border: 2px solid var(--warning);">
+        <i data-lucide="alert-octagon" style="width: 30px; height: 30px;"></i>
+      </div>
+      <h3 style="color: var(--warning); margin-bottom: 0.5rem; font-family: var(--font-display);">Peringatan Kecurangan!</h3>
+      <p style="color: var(--text-body); margin-bottom: 1.5rem; font-size: 0.875rem; line-height: 1.5;" id="warning-modal-message">
+        Anda terdeteksi meninggalkan halaman ujian. Pelanggaran ke-X/3. Jika mencapai 3 kali, ujian akan otomatis dikunci!
+      </p>
+      <button class="btn btn-secondary" id="btn-close-warning" style="width: 100%; border-color: var(--warning); color: #92400e; background-color: #fffbeb;">
+        Saya Mengerti & Kembali Ujian
+      </button>
+    </div>
+  </div>
+
+
+  <!-- Fullscreen Lock Overlay (Shown on Submit / Time Out / Violation lock) -->
+  <div class="exam-lock-overlay" id="lock-overlay" style="display: none;">
+    <div class="exam-lock-card">
+      <div id="lock-icon-container" style="width: 80px; height: 80px; background-color: #d1fae5; color: var(--success); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+        <i data-lucide="lock" style="width: 40px; height: 40px;" id="lock-icon-graphic"></i>
+      </div>
+      <h2 style="margin-bottom: 0.5rem; font-family: var(--font-display);" id="lock-title">Ujian Telah Selesai</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem;" id="lock-message">
+        Terima kasih, jawaban Anda telah berhasil disimpan dan dikunci.
+      </p>
+
+      <!-- Summary Grid inside card -->
+      <div style="background-color: var(--bg-main); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1.5rem; text-align: left; font-size: 0.85rem;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted);">Nama Siswa</span>
+          <strong id="lock-val-nama">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted);">NISN</span>
+          <strong id="lock-val-nisn">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted);">Mata Pelajaran</span>
+          <strong id="lock-val-mapel">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted);">Jawaban Terisi</span>
+          <strong id="lock-val-terisi">-</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span style="color: var(--text-muted);">Poin Pelanggaran</span>
+          <strong id="lock-val-pelanggaran" style="color: var(--danger);">0 / 3</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">Waktu Submit</span>
+          <strong id="lock-val-waktu">-</strong>
+        </div>
+      </div>
+
+      <div style="background-color: #e0f2fe; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.8rem; color: #0369a1; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; text-align: left;">
+        <i data-lucide="download" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+        <span>Lembar jawaban hasil ujian (.json) telah sukses diunduh otomatis ke folder Download perangkat Anda.</span>
+      </div>
+
+      <button class="btn btn-secondary" id="btn-return-login" style="width: 100%;">
+        <i data-lucide="arrow-left"></i> Kembali ke Halaman Login
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // DOM References
+    const studentPill = document.getElementById('student-pill');
+    const studentNamePill = document.getElementById('student-name-pill');
+    const studentNisnPill = document.getElementById('student-nisn-pill');
+    const btnLogout = document.getElementById('btn-logout');
+
+    const kopMadrasah = document.getElementById('kop-madrasah');
+    const kopJenisUjian = document.getElementById('kop-jenis-ujian');
+    const identitasMapel = document.getElementById('identitas-mapel');
+    const identitasKelasPaket = document.getElementById('identitas-kelas-paket');
+    const identitasSemesterTp = document.getElementById('identitas-semester-tp');
+    const identitasGuru = document.getElementById('identitas-guru');
+    
+    const identitasStudentNama = document.getElementById('identitas-student-nama');
+    const identitasStudentNisn = document.getElementById('identitas-student-nisn');
+    const identitasDurasi = document.getElementById('identitas-durasi');
+
+    const timerHour = document.getElementById('timer-hour');
+    const timerMin = document.getElementById('timer-min');
+    const timerSec = document.getElementById('timer-sec');
+    const timerDisplay = document.getElementById('timer-display');
+    const timerAlertLabel = document.getElementById('timer-alert-label');
+
+    const soalContainer = document.getElementById('soal-container');
+    const navGrid = document.getElementById('nav-grid');
+    const answeredBadge = document.getElementById('answered-badge');
+
+    const btnSubmitExamBottom = document.getElementById('btn-submit-exam-bottom');
+    const btnSubmitExamSidebar = document.getElementById('btn-submit-exam-sidebar');
+
+    // Overlay DOMs
+    const startOverlay = document.getElementById('start-overlay');
+    const startExamMetaLabel = document.getElementById('start-exam-meta-label');
+    const btnStartExam = document.getElementById('btn-start-exam');
+
+    const fullscreenBlockOverlay = document.getElementById('fullscreen-block-overlay');
+    const btnRestoreFullscreen = document.getElementById('btn-restore-fullscreen');
+
+    const warningModalOverlay = document.getElementById('warning-modal-overlay');
+    const warningModalMessage = document.getElementById('warning-modal-message');
+    const btnCloseWarning = document.getElementById('btn-close-warning');
+
+    const lockOverlay = document.getElementById('lock-overlay');
+    const lockTitle = document.getElementById('lock-title');
+    const lockMessage = document.getElementById('lock-message');
+    const lockIconContainer = document.getElementById('lock-icon-container');
+    const lockIconGraphic = document.getElementById('lock-icon-graphic');
+    
+    const lockValNama = document.getElementById('lock-val-nama');
+    const lockValNisn = document.getElementById('lock-val-nisn');
+    const lockValPelanggaran = document.getElementById('lock-val-pelanggaran');
+    const lockValTerisi = document.getElementById('lock-val-terisi');
+    const lockValMapel = document.getElementById('lock-val-mapel');
+    const lockValWaktu = document.getElementById('lock-val-waktu');
+    const btnReturnLogin = document.getElementById('btn-return-login');
+
+    const mainExamView = document.getElementById('main-exam-view');
+
+    // Global session state
+    let activeSession = null;
+    let studentSession = null;
+    let questionsList = []; // Normalized questions
+    let timerInterval = null;
+    let examStarted = false;
+    let examSubmitted = false;
+    let isTabAway = false; // Debounce flag for tab visibility trigger
+
+    // Student Answers State (loaded from localStorage on init)
+    let jawabanSiswa = {
+      pg: {},
+      uraian: {}
+    };
+
+    // Load session data
+    function loadSessionData() {
+      const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+      const studentSessionRaw = localStorage.getItem('smartexam_student_session');
+      const submittedRaw = localStorage.getItem('smartexam_exam_submitted');
+
+      // If active session or student session doesn't exist, redirect to login
+      if (!activeSessionRaw || !studentSessionRaw) {
+        window.location.href = 'siswa-login.html';
+        return false;
+      }
+
+      try {
+        activeSession = JSON.parse(activeSessionRaw);
+        studentSession = JSON.parse(studentSessionRaw);
+        
+        if (submittedRaw === 'true') {
+          examSubmitted = true;
+        }
+        
+        return true;
+      } catch (e) {
+        console.error("Gagal memuat sesi data", e);
+        localStorage.removeItem('smartexam_student_session');
+        window.location.href = 'siswa-login.html';
+        return false;
+      }
+    }
+
+    // Initialize layout and parameters
+    function initExam() {
+      if (!loadSessionData()) return;
+
+      const meta = activeSession.metadata ? activeSession.metadata : activeSession;
+
+      // Populate Top bar
+      studentNamePill.textContent = studentSession.nama;
+      studentNisnPill.textContent = `NISN: ${studentSession.nisn}`;
+
+      // Populate Letterhead (Kop Surat) & Metadata Box
+      kopMadrasah.textContent = meta.madrasah || 'MADRASAH ALIYAH';
+      if (meta.semester && meta.tahun) {
+        kopJenisUjian.textContent = `UJIAN SEMESTER ${meta.semester.toUpperCase()} TAHUN PELAJARAN ${meta.tahun}`;
+      }
+      
+      identitasMapel.textContent = meta.mapel_nama || '-';
+      identitasKelasPaket.textContent = `${meta.kelas || '-'} / Paket ${meta.paket || 'A'}`;
+      identitasSemesterTp.textContent = `${meta.semester || '-'} / ${meta.tahun || '-'}`;
+      identitasGuru.textContent = meta.guru || '-';
+
+      identitasStudentNama.textContent = studentSession.nama;
+      identitasStudentNisn.textContent = studentSession.nisn;
+      identitasDurasi.textContent = `${meta.waktu_menit || '0'} Menit`;
+
+      // Load existing answers from local storage
+      const savedAnswers = localStorage.getItem('smartexam_jawaban_siswa');
+      if (savedAnswers) {
+        try {
+          jawabanSiswa = JSON.parse(savedAnswers);
+          // Safety structure fallback
+          if (!jawabanSiswa.pg) jawabanSiswa.pg = {};
+          if (!jawabanSiswa.uraian) jawabanSiswa.uraian = {};
+        } catch (e) {
+          console.error("Gagal mengurai jawaban tersimpan", e);
+        }
+      }
+
+      // Check if already submitted previously
+      if (examSubmitted) {
+        const storedType = localStorage.getItem('smartexam_exam_submit_type') || 'manual';
+        showSubmittedOverlay(storedType);
+        return;
+      }
+
+      // Prepare and normalize questions list (PG then Essays)
+      let currentGlobalIndex = 1;
+      const soalPgList = activeSession.soal_pg || [];
+      const soalUraianList = activeSession.soal_uraian || [];
+
+      // Loop PG
+      soalPgList.forEach((q) => {
+        questionsList.push({
+          globalIndex: currentGlobalIndex++,
+          type: 'pg',
+          id: q.id,
+          pertanyaan: q.pertanyaan,
+          pilihan: q.pilihan || {},
+          bobot: q.bobot || 'Mudah',
+          bab: q.bab || 'Umum'
+        });
+      });
+
+      // Loop Essays
+      soalUraianList.forEach((q) => {
+        questionsList.push({
+          globalIndex: currentGlobalIndex++,
+          type: 'uraian',
+          id: q.id,
+          pertanyaan: q.pertanyaan,
+          bobot: q.bobot || 'Sedang',
+          bab: q.bab || 'Umum'
+        });
+      });
+
+      // Render items
+      renderQuestions();
+      renderNavigationGrid();
+      updateAnswerProgress();
+
+      // Show Landing Screen start-exam overlay to trigger programmatic fullscreen
+      startExamMetaLabel.textContent = `Mata Pelajaran: ${meta.mapel_nama} | Kelas: ${meta.kelas} | Durasi: ${meta.waktu_menit} Menit`;
+      startOverlay.style.display = 'flex';
+      
+      // Hook anti-cheating events (keyboard blocker, click blocker)
+      hookAntiCheatKeyboards();
+    }
+
+    // Start Exam click trigger (User gesture)
+    btnStartExam.addEventListener('click', () => {
+      examStarted = true;
+      startOverlay.style.display = 'none';
+      mainExamView.style.display = 'block';
+
+      // Enter fullscreen
+      enterFullscreen();
+
+      // Start Countdown Timer
+      const meta = activeSession.metadata ? activeSession.metadata : activeSession;
+      startCountdown(parseInt(meta.waktu_menit) || 90);
+
+      // Trigger LaTeX Rendering via MathJax
+      triggerMathJaxRendering();
+
+      // Hook Focus detection for tab switching
+      hookTabFocusMonitoring();
+    });
+
+    // Enter Fullscreen mode
+    function enterFullscreen() {
+      const docEl = document.documentElement;
+      try {
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) { /* Safari */
+          docEl.webkitRequestFullscreen();
+        } else if (docEl.msRequestFullscreen) { /* IE11 */
+          docEl.msRequestFullscreen();
+        }
+      } catch (err) {
+        console.error("Gagal masuk mode fullscreen:", err);
+      }
+    }
+
+    // Monitor Fullscreen changes
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+
+    function handleFullscreenChange() {
+      if (!examStarted || examSubmitted) return;
+
+      const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+      
+      if (!isFullscreen) {
+        // Exited fullscreen, show red overlay blocker
+        fullscreenBlockOverlay.style.display = 'flex';
+      } else {
+        // Entered fullscreen, hide overlay blocker
+        fullscreenBlockOverlay.style.display = 'none';
+      }
+    }
+
+    btnRestoreFullscreen.addEventListener('click', () => {
+      enterFullscreen();
+    });
+
+    // Start Countdown Timer
+    function startCountdown(durationMinutes) {
+      // Calculate or read exam end time from local storage
+      let examEndTime = localStorage.getItem('smartexam_exam_end_time');
+      
+      if (!examEndTime) {
+        examEndTime = Date.now() + (durationMinutes * 60 * 1000);
+        localStorage.setItem('smartexam_exam_end_time', examEndTime);
+      } else {
+        examEndTime = parseInt(examEndTime);
+      }
+
+      function updateTimer() {
+        const remainingMs = examEndTime - Date.now();
+        
+        if (remainingMs <= 0) {
+          clearInterval(timerInterval);
+          timerHour.textContent = '00';
+          timerMin.textContent = '00';
+          timerSec.textContent = '00';
+          // Auto-submit exam on timeout
+          submitUjian(true, 'timer_expired');
+          return;
+        }
+
+        const remainingSec = Math.floor(remainingMs / 1000);
+        const hrs = Math.floor(remainingSec / 3600);
+        const mins = Math.floor((remainingSec % 3600) / 60);
+        const secs = remainingSec % 60;
+
+        timerHour.textContent = String(hrs).padStart(2, '0');
+        timerMin.textContent = String(mins).padStart(2, '0');
+        timerSec.textContent = String(secs).padStart(2, '0');
+
+        // Urgency color (under 5 minutes)
+        if (remainingSec < 300) {
+          timerDisplay.style.color = 'var(--danger)';
+          timerAlertLabel.style.color = 'var(--danger)';
+          timerAlertLabel.innerHTML = '<i data-lucide="alert-triangle" style="width: 12px; height: 12px; vertical-align: middle;"></i> Waktu hampir habis!';
+          lucide.createIcons();
+        }
+      }
+
+      updateTimer(); // Initial call
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    // Render questions to DOM (Separated from jawaban_benar property)
+    function renderQuestions() {
+      soalContainer.innerHTML = '';
+
+      questionsList.forEach((q) => {
+        const card = document.createElement('div');
+        card.className = 'card soal-item';
+        card.id = `soal-card-${q.globalIndex}`;
+
+        if (q.type === 'pg') {
+          // Render PG options
+          let optionsHtml = '';
+          const keys = Object.keys(q.pilihan).sort(); // A, B, C, D, E...
+          
+          keys.forEach((key) => {
+            const isSelected = jawabanSiswa.pg[q.id] === key;
+            optionsHtml += `
+              <label class="opsi-item ${isSelected ? 'selected' : ''}" id="label-${q.id}-${key}">
+                <input type="radio" 
+                       name="jawaban_${q.id}" 
+                       value="${key}" 
+                       data-qid="${q.id}" 
+                       data-gidx="${q.globalIndex}" 
+                       ${isSelected ? 'checked' : ''} 
+                       onchange="saveAnswerPG('${q.id}', '${key}', ${q.globalIndex})">
+                <span class="opsi-label">${key}.</span>
+                <span class="opsi-teks">${q.pilihan[key]}</span>
+              </label>
+            `;
+          });
+
+          card.innerHTML = `
+            <div class="soal-header">
+              <span class="soal-badge">Pilihan Ganda - Soal ${q.globalIndex}</span>
+              <span class="soal-bobot">Bab: ${q.bab} | Bobot: ${q.bobot}</span>
+            </div>
+            <div class="soal-tanya">${q.pertanyaan}</div>
+            <div class="opsi-list">
+              ${optionsHtml}
+            </div>
+          `;
+        } else {
+          // Render Essay Textarea
+          const savedEssayAnswer = jawabanSiswa.uraian[q.id] || '';
+          card.innerHTML = `
+            <div class="soal-header">
+              <span class="soal-badge Uraian">Uraian / Esai - Soal ${q.globalIndex}</span>
+              <span class="soal-bobot">Bab: ${q.bab} | Bobot: ${q.bobot}</span>
+            </div>
+            <div class="soal-tanya">${q.pertanyaan}</div>
+            <div>
+              <textarea class="essay-box" 
+                        id="essay-${q.id}" 
+                        placeholder="Ketikkan lembar jawaban uraian Anda di sini..." 
+                        oninput="saveAnswerEssay('${q.id}', this.value, ${q.globalIndex})">${savedEssayAnswer}</textarea>
+            </div>
+          `;
+        }
+
+        soalContainer.appendChild(card);
+      });
+    }
+
+    // Render navigation sidebar grid
+    function renderNavigationGrid() {
+      navGrid.innerHTML = '';
+      
+      questionsList.forEach((q) => {
+        const btn = document.createElement('button');
+        btn.className = `nav-num ${q.type === 'uraian' ? 'uraian-type' : ''}`;
+        btn.id = `nav-num-${q.globalIndex}`;
+        btn.textContent = q.globalIndex;
+
+        // Check if already answered to color it
+        let isAnswered = false;
+        if (q.type === 'pg') {
+          isAnswered = !!jawabanSiswa.pg[q.id];
+        } else {
+          isAnswered = !!jawabanSiswa.uraian[q.id] && jawabanSiswa.uraian[q.id].trim().length > 0;
+        }
+
+        if (isAnswered) {
+          btn.classList.add('answered');
+        }
+
+        // Click handler to scroll to question smooth
+        btn.addEventListener('click', () => {
+          const targetCard = document.getElementById(`soal-card-${q.globalIndex}`);
+          if (targetCard) {
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Set active focus style
+            document.querySelectorAll('.nav-num').forEach((n) => n.classList.remove('active'));
+            btn.classList.add('active');
+          }
+        });
+
+        navGrid.appendChild(btn);
+      });
+    }
+
+    // Auto-Save Multiple Choice answers
+    window.saveAnswerPG = function(qid, value, globalIndex) {
+      if (examSubmitted) return;
+
+      // Update local storage answers object
+      jawabanSiswa.pg[qid] = value;
+      localStorage.setItem('smartexam_jawaban_siswa', JSON.stringify(jawabanSiswa));
+
+      // Visual updates: highlight selected container
+      const parentList = document.querySelector(`#soal-card-${globalIndex} .opsi-list`);
+      if (parentList) {
+        parentList.querySelectorAll('.opsi-item').forEach((item) => {
+          item.classList.remove('selected');
+        });
+      }
+      
+      const selectedLabel = document.getElementById(`label-${qid}-${value}`);
+      if (selectedLabel) {
+        selectedLabel.classList.add('selected');
+      }
+
+      // Mark sidebar button as answered
+      const navBtn = document.getElementById(`nav-num-${globalIndex}`);
+      if (navBtn) {
+        navBtn.classList.add('answered');
+      }
+
+      updateAnswerProgress();
+    };
+
+    // Auto-Save Essay answers
+    window.saveAnswerEssay = function(qid, value, globalIndex) {
+      if (examSubmitted) return;
+
+      // Update state
+      if (value.trim().length > 0) {
+        jawabanSiswa.uraian[qid] = value;
+      } else {
+        delete jawabanSiswa.uraian[qid];
+      }
+      
+      localStorage.setItem('smartexam_jawaban_siswa', JSON.stringify(jawabanSiswa));
+
+      // Update sidebar color state
+      const navBtn = document.getElementById(`nav-num-${globalIndex}`);
+      if (navBtn) {
+        if (value.trim().length > 0) {
+          navBtn.classList.add('answered');
+        } else {
+          navBtn.classList.remove('answered');
+        }
+      }
+
+      updateAnswerProgress();
+    };
+
+    // Update answered progress numbers
+    function updateAnswerProgress() {
+      let totalAnswered = 0;
+      
+      // count PG
+      questionsList.forEach((q) => {
+        if (q.type === 'pg') {
+          if (jawabanSiswa.pg[q.id]) totalAnswered++;
+        } else {
+          if (jawabanSiswa.uraian[q.id] && jawabanSiswa.uraian[q.id].trim().length > 0) totalAnswered++;
+        }
+      });
+
+      answeredBadge.textContent = `${totalAnswered} / ${questionsList.length} Terisi`;
+    }
+
+    // MathJax Typeset Trigger
+    function triggerMathJaxRendering() {
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise().catch((err) => console.error("MathJax typesetting error:", err));
+      }
+    }
+
+
+    // ==========================================
+    // PHASE 3: ANTI-CHEATING CONTROL SYSTEMS
+    // ==========================================
+
+    function hookAntiCheatKeyboards() {
+      // 1. Right Click blocker
+      document.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+      });
+
+      // 2. Text Selection / Copy / Paste blocker
+      document.addEventListener('copy', (e) => {
+        e.preventDefault();
+      });
+      document.addEventListener('paste', (e) => {
+        e.preventDefault();
+      });
+
+      // 3. Hotkeys blocker
+      document.addEventListener('keydown', (e) => {
+        if (!examStarted || examSubmitted) return;
+
+        // F12 Blocker
+        if (e.key === 'F12') {
+          e.preventDefault();
+          return;
+        }
+
+        // Ctrl + Shift + I (Inspect Element) or Ctrl + Shift + J
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+          e.preventDefault();
+          return;
+        }
+
+        // Ctrl + C / Ctrl + V blocker
+        if (e.ctrlKey && (e.key === 'C' || e.key === 'c' || e.key === 'V' || e.key === 'v')) {
+          e.preventDefault();
+          return;
+        }
+
+        // Ctrl + U blocker (View Page Source)
+        if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+          e.preventDefault();
+          return;
+        }
+
+        // Ctrl + S (Save Page)
+        if (e.ctrlKey && (e.key === 'S' || e.key === 's')) {
+          e.preventDefault();
+          return;
+        }
+      });
+    }
+
+    function hookTabFocusMonitoring() {
+      // Visibility Change (Tab Switching / minimizing)
+      document.addEventListener('visibilitychange', handleTabFocusSwitch);
+      
+      // Window Blur (Focusing other windows/apps)
+      window.addEventListener('blur', handleTabFocusSwitch);
+    }
+
+    function handleTabFocusSwitch() {
+      if (!examStarted || examSubmitted) return;
+
+      if (isTabAway) return; // Prevent double trigger
+      isTabAway = true;
+
+      // Small delay debounce
+      setTimeout(() => {
+        const isHidden = document.hidden;
+        const isBlurred = !document.hasFocus();
+
+        if (isHidden || isBlurred) {
+          triggerViolation();
+        } else {
+          isTabAway = false;
+        }
+      }, 150);
+    }
+
+    // Reset tab-away when browser focus returns
+    window.addEventListener('focus', () => {
+      isTabAway = false;
+    });
+
+    function triggerViolation() {
+      if (examSubmitted) return;
+
+      let storedViolations = parseInt(localStorage.getItem('smartexam_violation_count')) || 0;
+      storedViolations++;
+      localStorage.setItem('smartexam_violation_count', storedViolations);
+
+      if (storedViolations >= 3) {
+        // Disqualification (Lock exam sepihak)
+        submitUjian(true, 'violation_locked');
+      } else {
+        // Show Warning Modal Popup
+        showTabWarningModal(storedViolations);
+      }
+    }
+
+    function showTabWarningModal(violationNo) {
+      warningModalMessage.innerHTML = `Anda terdeteksi meninggalkan halaman ujian atau membuka jendela aplikasi lain. Pelanggaran ke-<strong>${violationNo}</strong> dari 3.<br><br><span style="color: var(--danger); font-weight: bold;">PERINGATAN: Pada pelanggaran ke-3, lembar ujian Anda akan otomatis dikunci dan dikumpulkan sepihak!</span>`;
+      warningModalOverlay.style.display = 'flex';
+    }
+
+    // Warning Close Button (Must re-enter fullscreen)
+    btnCloseWarning.addEventListener('click', () => {
+      warningModalOverlay.style.display = 'none';
+      isTabAway = false;
+      enterFullscreen();
+    });
+
+
+    // ==========================================
+    // SUBMISSION & JSON RESULTS EXPORT
+    // ==========================================
+
+    function submitUjian(isAuto = false, submitType = 'manual') {
+      if (examSubmitted) return;
+
+      if (!isAuto) {
+        const confirmSubmit = confirm("Apakah Anda yakin ingin menyelesaikan ujian dan mengumpulkan seluruh jawaban? Jawaban tidak dapat diubah kembali.");
+        if (!confirmSubmit) return;
+      }
+
+      examSubmitted = true;
+      clearInterval(timerInterval);
+
+      // Save submission status
+      localStorage.setItem('smartexam_exam_submitted', 'true');
+      localStorage.setItem('smartexam_exam_submit_type', submitType);
+      
+      // Clean up timer variables
+      localStorage.removeItem('smartexam_exam_end_time');
+
+      // Exit fullscreen safely
+      try {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      } catch (err) {
+        // ignore
+      }
+
+      // Compile Results Payload
+      const meta = activeSession.metadata ? activeSession.metadata : activeSession;
+      const violationCount = parseInt(localStorage.getItem('smartexam_violation_count')) || 0;
+
+      const resultPayload = {
+        siswa: {
+          nisn: studentSession.nisn,
+          nama: studentSession.nama,
+          waktu_login: studentSession.waktu_login
+        },
+        ujian: {
+          madrasah: meta.madrasah,
+          mapel_nama: meta.mapel_nama,
+          kelas: meta.kelas,
+          semester: meta.semester,
+          tahun: meta.tahun,
+          paket: meta.paket,
+          guru: meta.guru,
+          waktu_menit: meta.waktu_menit
+        },
+        jawaban: jawabanSiswa,
+        log_aktivitas: {
+          violation_count: violationCount,
+          submitted_at: new Date().toISOString(),
+          status_pengumpulan: submitType // 'manual' | 'timer_expired' | 'violation_locked'
+        }
+      };
+
+      // Trigger Automatic JSON Download
+      triggerFileDownload(resultPayload);
+
+      // Lock all inputs visually
+      document.querySelectorAll('input[type="radio"]').forEach(el => el.disabled = true);
+      document.querySelectorAll('textarea').forEach(el => el.disabled = true);
+      btnSubmitExamBottom.disabled = true;
+      btnSubmitExamSidebar.disabled = true;
+      btnSubmitExamBottom.style.opacity = '0.5';
+      btnSubmitExamSidebar.style.opacity = '0.5';
+
+      // Show overlay modal
+      showSubmittedOverlay(submitType);
+    }
+
+    // Trigger JSON File Download helper
+    function triggerFileDownload(payload) {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+      const downloadAnchor = document.createElement('a');
+
+      // Clean metadata names for filename
+      const cleanNisn = studentSession.nisn.replace(/\s+/g, '_');
+      const cleanNama = studentSession.nama.replace(/\s+/g, '_');
+      const cleanMapel = (payload.ujian.mapel_nama || 'Mapel').replace(/\s+/g, '_');
+      
+      const fileName = `Hasil_Ujian_${cleanNisn}_${cleanNama}_${cleanMapel}.json`;
+
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", fileName);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    // Render Overlay Card details
+    function showSubmittedOverlay(submitType) {
+      const meta = activeSession.metadata ? activeSession.metadata : activeSession;
+      const violationCount = parseInt(localStorage.getItem('smartexam_violation_count')) || 0;
+      
+      // Count answered
+      let totalAnswered = 0;
+      const totalQuestions = (activeSession.soal_pg || []).length + (activeSession.soal_uraian || []).length;
+      
+      Object.keys(jawabanSiswa.pg).forEach((k) => {
+        if (jawabanSiswa.pg[k]) totalAnswered++;
+      });
+      Object.keys(jawabanSiswa.uraian).forEach((k) => {
+        if (jawabanSiswa.uraian[k] && jawabanSiswa.uraian[k].trim().length > 0) totalAnswered++;
+      });
+
+      // Update overlay fields
+      lockValNama.textContent = studentSession.nama;
+      lockValNisn.textContent = studentSession.nisn;
+      lockValMapel.textContent = meta.mapel_nama;
+      lockValTerisi.textContent = `${totalAnswered} dari ${totalQuestions} soal`;
+      lockValPelanggaran.textContent = `${violationCount} / 3`;
+      
+      // Format current timestamp
+      const now = new Date();
+      lockValWaktu.textContent = now.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }) + ' ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+      // Style overlay card depending on type
+      if (submitType === 'violation_locked') {
+        lockTitle.textContent = "AKSES UJIAN DIKUNCI!";
+        lockTitle.style.color = "var(--danger)";
+        lockMessage.textContent = "Ujian Anda dikunci sepihak oleh sistem karena terdeteksi meninggalkan halaman ujian sebanyak 3 kali (Tindakan Curang).";
+        
+        lockIconContainer.style.backgroundColor = '#fee2e2';
+        lockIconContainer.style.color = 'var(--danger)';
+        lockIconGraphic.setAttribute('data-lucide', 'shield-x');
+      } else if (submitType === 'timer_expired') {
+        lockTitle.textContent = "Waktu Ujian Habis!";
+        lockTitle.style.color = "var(--warning)";
+        lockMessage.textContent = "Batas waktu pengerjaan telah habis. Jawaban Anda dikunci dan dikumpulkan otomatis.";
+        
+        lockIconContainer.style.backgroundColor = '#fef3c7';
+        lockIconContainer.style.color = 'var(--warning)';
+        lockIconGraphic.setAttribute('data-lucide', 'clock');
+      } else {
+        lockTitle.textContent = "Ujian Selesai!";
+        lockTitle.style.color = "var(--success)";
+        lockMessage.textContent = "Terima kasih, lembar jawaban Anda telah sukses disimpan dan dikunci oleh sistem proktor.";
+        
+        lockIconContainer.style.backgroundColor = '#d1fae5';
+        lockIconContainer.style.color = 'var(--success)';
+        lockIconGraphic.setAttribute('data-lucide', 'check-circle-2');
+      }
+
+      lucide.createIcons();
+
+      // Display overlay
+      lockOverlay.style.display = 'flex';
+    }
+
+    // Return to login logic
+    btnReturnLogin.addEventListener('click', () => {
+      // Clear student session details but preserve the active exam session
+      localStorage.removeItem('smartexam_student_session');
+      localStorage.removeItem('smartexam_jawaban_siswa');
+      localStorage.removeItem('smartexam_exam_submitted');
+      localStorage.removeItem('smartexam_exam_submit_type');
+      localStorage.removeItem('smartexam_violation_count');
+      localStorage.removeItem('smartexam_exam_end_time');
+      window.location.href = 'siswa-login.html';
+    });
+
+    // Event listener for manual submission
+    btnSubmitExamBottom.addEventListener('click', () => submitUjian(false, 'manual'));
+    btnSubmitExamSidebar.addEventListener('click', () => submitUjian(false, 'manual'));
+
+    // Handle session exit (Log out)
+    btnLogout.addEventListener('click', () => {
+      if (examSubmitted) {
+        localStorage.removeItem('smartexam_student_session');
+        localStorage.removeItem('smartexam_jawaban_siswa');
+        localStorage.removeItem('smartexam_exam_submitted');
+        localStorage.removeItem('smartexam_exam_submit_type');
+        localStorage.removeItem('smartexam_violation_count');
+        localStorage.removeItem('smartexam_exam_end_time');
+        window.location.href = 'siswa-login.html';
+      } else {
+        if (confirm("Apakah Anda yakin ingin keluar ruangan ujian? Sisa waktu ujian Anda akan tetap berjalan.")) {
+          // If they leave without submitting, do NOT clear answers so they can log back in.
+          localStorage.removeItem('smartexam_student_session');
+          window.location.href = 'siswa-login.html';
+        }
+      }
+    });
+
+    // Run Initialization
+    initExam();
+  </script>
+</body>
+</html>

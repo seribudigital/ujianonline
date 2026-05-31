@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartExam-Online | Proktor Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons for premium feel -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <i data-lucide="shield-check" style="color: var(--primary);"></i>
+      SmartExam<span>Proktor</span>
+    </div>
+    <ul class="navbar-nav">
+      <li><a href="admin-proktor.html" class="nav-link active">Proktor Dashboard</a></li>
+      <li><a href="siswa-login.html" class="nav-link">Portal Siswa</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <div style="margin-bottom: 2rem;">
+      <h1>Dashboard Pengawas / Proktor</h1>
+      <p style="color: var(--text-muted);">Unggah file konfigurasi ujian (.json) untuk memulai sesi ujian siswa.</p>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alert-container"></div>
+
+    <div class="dashboard-grid">
+      <!-- Left Column: Upload Area -->
+      <div>
+        <div class="card card-hover" style="margin-bottom: 1.5rem;">
+          <h3 style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="file-up" style="color: var(--primary);"></i> Unggah Soal Ujian
+          </h3>
+          <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">
+            Ekspor file JSON dari aplikasi <strong>SmartExam Guru</strong> kemudian seret & lepas atau klik area di bawah untuk mengunggahnya.
+          </p>
+
+          <div class="upload-zone" id="upload-zone">
+            <div class="upload-zone-icon">
+              <i data-lucide="upload-cloud" style="width: 48px; height: 48px;"></i>
+            </div>
+            <p style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
+              Tarik file JSON Anda ke sini atau <span style="color: var(--primary);">telusuri berkas</span>
+            </p>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">Mendukung format .json ekspor resmi SmartExam Guru</p>
+            <input type="file" id="file-input" accept=".json">
+          </div>
+        </div>
+
+        <!-- Format Panduan -->
+        <div class="card">
+          <h3 style="margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="info" style="color: var(--secondary);"></i> Panduan Struktur Data Soal
+          </h3>
+          <p style="font-size: 0.875rem; margin-bottom: 0.75rem; color: var(--text-body);">
+            File JSON wajib memiliki struktur data berikut agar terbaca di halaman siswa:
+          </p>
+          <pre style="background-color: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); font-family: monospace; font-size: 0.75rem; overflow-x: auto; border: 1px solid var(--border-color); color: #1e293b;">
+{
+  "madrasah": "Nama Madrasah",
+  "mapel_nama": "Mata Pelajaran",
+  "kelas": "Kelas",
+  "semester": "Ganjil/Genap",
+  "tahun": "Tahun Pelajaran",
+  "waktu_menit": 90,
+  "guru": "Nama Guru Pengampu",
+  "paket": "Nama Paket Soal",
+  "soal_pg": [...],
+  "soal_uraian": [...]
+}</pre>
+        </div>
+      </div>
+
+      <!-- Right Column: Active Session Summary -->
+      <div>
+        <div class="card session-info-card" id="session-card">
+          <h3 style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="activity" style="color: var(--primary);"></i> Sesi Aktif Saat Ini
+          </h3>
+          
+          <div id="no-session-content">
+            <div style="text-align: center; padding: 2rem 0;">
+              <i data-lucide="database-backup" style="width: 40px; height: 40px; color: var(--text-muted); margin-bottom: 0.75rem;"></i>
+              <p style="color: var(--text-muted); font-size: 0.875rem;">Belum ada sesi ujian aktif di perangkat ini.</p>
+            </div>
+          </div>
+
+          <div id="session-active-content" style="display: none;">
+            <div class="info-item">
+              <span class="info-item-label">Madrasah</span>
+              <span class="info-item-value" id="val-madrasah">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-item-label">Mata Pelajaran</span>
+              <span class="info-item-value" id="val-mapel">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-item-label">Kelas</span>
+              <span class="info-item-value" id="val-kelas">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-item-label">Semester / TP</span>
+              <span class="info-item-value" id="val-semester-tp">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-item-label">Paket Soal</span>
+              <span class="info-item-value" id="val-paket">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-item-label">Guru Pengampu</span>
+              <span class="info-item-value" id="val-guru">-</span>
+            </div>
+            <div class="info-item">
+              <span class="info-item-label">Durasi Ujian</span>
+              <span class="info-item-value"><span id="val-durasi">-</span> menit</span>
+            </div>
+            <div class="info-item">
+              <span class="info-item-label">Jumlah Soal PG</span>
+              <span class="info-item-value"><span id="val-soal-pg">0</span> butir</span>
+            </div>
+            <div class="info-item">
+              <span class="info-item-label">Jumlah Soal Essay</span>
+              <span class="info-item-value"><span id="val-soal-uraian">0</span> butir</span>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="background-color: var(--primary-light); padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.8rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="check-circle-2" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+                <span>Sesi ujian siap diakses oleh siswa di perangkat ini.</span>
+              </div>
+              <button class="btn btn-danger" id="btn-clear-session" style="width: 100%;">
+                <i data-lucide="trash-2"></i> Hapus Sesi Ujian
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2026 SmartExam-Online (Platform Ujian Siswa). All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // DOM Elements
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+    const alertContainer = document.getElementById('alert-container');
+    
+    const noSessionContent = document.getElementById('no-session-content');
+    const sessionActiveContent = document.getElementById('session-active-content');
+    const btnClearSession = document.getElementById('btn-clear-session');
+
+    // Metadata DOM fields
+    const valMadrasah = document.getElementById('val-madrasah');
+    const valMapel = document.getElementById('val-mapel');
+    const valKelas = document.getElementById('val-kelas');
+    const valSemesterTp = document.getElementById('val-semester-tp');
+    const valPaket = document.getElementById('val-paket');
+    const valGuru = document.getElementById('val-guru');
+    const valDurasi = document.getElementById('val-durasi');
+    const valSoalPg = document.getElementById('val-soal-pg');
+    const valSoalUraian = document.getElementById('val-soal-uraian');
+
+    // Render alert notification helper
+    function showAlert(message, type = 'success') {
+      alertContainer.innerHTML = `
+        <div class="alert alert-${type}">
+          <i data-lucide="${type === 'success' ? 'check-circle' : type === 'danger' ? 'alert-triangle' : 'info'}" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
+          <div>
+            <strong>${type === 'success' ? 'Berhasil!' : type === 'danger' ? 'Error!' : 'Informasi'}</strong>
+            <p style="margin-top: 2px;">${message}</p>
+          </div>
+        </div>
+      `;
+      lucide.createIcons({
+        attrs: {
+          class: ["lucide-icon"]
+        },
+        nameAttr: "data-lucide"
+      });
+    }
+
+    // Load active session from localStorage if exists
+    function loadActiveSession() {
+      const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+      if (activeSessionRaw) {
+        try {
+          const session = JSON.parse(activeSessionRaw);
+          const meta = session.metadata ? session.metadata : session;
+          
+          // Populate details
+          valMadrasah.textContent = meta.madrasah || '-';
+          valMapel.textContent = meta.mapel_nama || '-';
+          valKelas.textContent = meta.kelas || '-';
+          valSemesterTp.textContent = `${meta.semester || '-'} / ${meta.tahun || '-'}`;
+          valPaket.textContent = meta.paket || '-';
+          valGuru.textContent = meta.guru || '-';
+          valDurasi.textContent = meta.waktu_menit || '0';
+          valSoalPg.textContent = session.soal_pg ? session.soal_pg.length : 0;
+          valSoalUraian.textContent = session.soal_uraian ? session.soal_uraian.length : 0;
+
+          // Toggle view
+          noSessionContent.style.display = 'none';
+          sessionActiveContent.style.display = 'block';
+        } catch (e) {
+          console.error("Gagal mengurai smartexam_active_session", e);
+          localStorage.removeItem('smartexam_active_session');
+          showNoSession();
+        }
+      } else {
+        showNoSession();
+      }
+    }
+
+    function showNoSession() {
+      noSessionContent.style.display = 'block';
+      sessionActiveContent.style.display = 'none';
+    }
+
+    // Clear Session
+    btnClearSession.addEventListener('click', () => {
+      if (confirm('Apakah Anda yakin ingin menghapus sesi ujian aktif ini? Siswa tidak akan bisa melakukan login atau ujian.')) {
+        localStorage.removeItem('smartexam_active_session');
+        loadActiveSession();
+        showAlert('Sesi ujian telah dihapus.', 'info');
+      }
+    });
+
+    // File Drop & Select handlers
+    uploadZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+      uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleExamFile(files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const files = e.target.files;
+      if (files.length > 0) {
+        handleExamFile(files[0]);
+      }
+    });
+
+    // Validate and process the uploaded file
+    function handleExamFile(file) {
+      if (!file.name.endsWith('.json')) {
+        showAlert('Format berkas harus berupa file .json!', 'danger');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const rawData = JSON.parse(event.target.result);
+          
+          // Check metadata location (nested or flat)
+          const meta = rawData.metadata ? rawData.metadata : rawData;
+          
+          // Validation checklist
+          const requiredKeys = ['madrasah', 'mapel_nama', 'kelas', 'semester', 'tahun', 'waktu_menit', 'guru', 'paket'];
+          const missingKeys = [];
+
+          requiredKeys.forEach(key => {
+            if (meta[key] === undefined) {
+              missingKeys.push(key);
+            }
+          });
+
+          if (missingKeys.length > 0) {
+            showAlert(`File JSON tidak valid. Kunci berikut hilang pada metadata: ${missingKeys.join(', ')}`, 'danger');
+            return;
+          }
+
+          // Format check success, save to localStorage
+          // Initialize empty array for questions if not existing
+          if (!rawData.soal_pg) rawData.soal_pg = [];
+          if (!rawData.soal_uraian) rawData.soal_uraian = [];
+
+          localStorage.setItem('smartexam_active_session', JSON.stringify(rawData));
+          showAlert('Sesi soal ujian berhasil diunggah dan disimpan ke localStorage!', 'success');
+          loadActiveSession();
+          
+        } catch (e) {
+          showAlert('Gagal mengurai file JSON. Pastikan format file Anda benar.', 'danger');
+          console.error(e);
+        }
+      };
+      
+      reader.readAsText(file);
+    }
+
+    // Init load on launch
+    loadActiveSession();
+  </script>
+</body>
+</html>

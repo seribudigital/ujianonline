@@ -1,0 +1,986 @@
+/* Import modern, readable fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* Elegant Color Palette */
+  --primary: #0d9488;         /* Emerald Teal */
+  --primary-hover: #0f766e;   /* Darker Teal */
+  --primary-light: #ccfbf1;   /* Soft Teal Accent */
+  
+  --secondary: #4f46e5;       /* Indigo for highlights */
+  --secondary-hover: #4338ca;
+  
+  --success: #10b981;         /* Emerald Green */
+  --warning: #f59e0b;         /* Amber Yellow */
+  --danger: #ef4444;          /* Red */
+  
+  /* Neutral Palette */
+  --bg-main: #f8fafc;         /* Soft grey/blue background */
+  --bg-card: #ffffff;
+  --text-dark: #0f172a;       /* Slate 900 for headings */
+  --text-body: #334155;       /* Slate 700 for paragraphs */
+  --text-muted: #64748b;      /* Slate 500 for captions */
+  --border-color: #e2e8f0;    /* Slate 200 */
+  --focus-ring: rgba(13, 148, 136, 0.25);
+  
+  /* System Tokens */
+  --font-family: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Tokens (Optional support ready) */
+@media (prefers-color-scheme: dark) {
+  /* We can override tokens here if we want a dark mode, but exams are traditionally light to replicate paper format. We will keep it clean and comfortable. */
+}
+
+/* CSS Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--text-dark);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+/* Layout Utilities */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Custom Navigation Bar */
+.navbar {
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navbar-brand span {
+  color: var(--primary);
+}
+
+.navbar-nav {
+  display: flex;
+  list-style: none;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--primary);
+}
+
+/* Premium Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: var(--transition);
+  gap: 0.5rem;
+  font-family: var(--font-family);
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background-color: var(--bg-main);
+  border-color: var(--border-color);
+  color: var(--text-body);
+}
+
+.btn-secondary:hover {
+  background-color: var(--border-color);
+  color: var(--text-dark);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background-color: var(--danger);
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-family: var(--font-family);
+  color: var(--text-dark);
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.form-control::placeholder {
+  color: #a1a1aa;
+}
+
+/* Modern Card Layouts */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.card-hover:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Login Page Layout */
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  background: radial-gradient(circle at top right, rgba(13, 148, 136, 0.05), transparent),
+              radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.05), transparent),
+              var(--bg-main);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-logo {
+  width: 60px;
+  height: 60px;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin: 0 auto 1rem;
+}
+
+/* Proctor Dashboard Page */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+/* File Upload Zone */
+.upload-zone {
+  border: 2px dashed #cbd5e1;
+  border-radius: var(--radius-lg);
+  padding: 3rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  background-color: #ffffff;
+  transition: var(--transition);
+  position: relative;
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+.upload-zone-icon {
+  font-size: 3rem;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+.upload-zone input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Toast / Alert notifications */
+.alert {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  animation: slideIn 0.3s ease-out;
+}
+
+.alert-success {
+  background-color: #d1fae5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.alert-danger {
+  background-color: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.alert-warning {
+  background-color: #fef3c7;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.alert-info {
+  background-color: #e0f2fe;
+  border: 1px solid #bae6fd;
+  color: #075985;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Official Exam Letterhead (Kop Surat Ujian Resmi) */
+.kop-surat {
+  background-color: #ffffff;
+  border: 2px solid #000000;
+  border-radius: var(--radius-sm);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  font-family: 'Inter', sans-serif;
+  color: #000000;
+}
+
+.kop-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 4px double #000000;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  gap: 1.5rem;
+}
+
+.kop-logo {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000000;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.kop-instansi {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.kop-instansi h2 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+  color: #000000;
+  font-family: 'Inter', sans-serif;
+}
+
+.kop-instansi h3 {
+  font-size: 1.35rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  color: #000000;
+  font-family: 'Inter', sans-serif;
+}
+
+.kop-instansi p {
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+  color: #333333;
+}
+
+.kop-title {
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.5px;
+  color: #000000;
+}
+
+/* Official Identity Grid/Box (Kotak Identitas Resmi Ujian) */
+.identitas-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  font-size: 0.875rem;
+  border: 1px solid #000000;
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  background-color: #fafafa;
+}
+
+@media (min-width: 768px) {
+  .identitas-grid {
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.identitas-kolom {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.identitas-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+.identitas-label {
+  width: 140px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.identitas-titikdua {
+  width: 15px;
+  flex-shrink: 0;
+}
+
+.identitas-value {
+  flex-grow: 1;
+  font-weight: 700;
+}
+
+.identitas-value.student-info {
+  color: var(--secondary);
+  text-transform: uppercase;
+}
+
+/* Detail Tables */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+}
+
+.data-table th, .data-table td {
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.data-table th {
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+.data-table tbody tr:hover {
+  background-color: rgba(241, 245, 249, 0.5);
+}
+
+/* Session Info Card (Proktor) */
+.session-info-card {
+  border-left: 4px solid var(--primary);
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.875rem;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item-label {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.info-item-value {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+/* Footer Section */
+.footer {
+  text-align: center;
+  padding: 2rem 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  border-top: 1px solid var(--border-color);
+  margin-top: 3rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.badge-warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+/* ==========================================
+   PHASE 2: STUDENT EXAM INTERFACE STYLES
+   ========================================== */
+
+/* Split layout grid */
+.exam-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 992px) {
+  .exam-layout {
+    grid-template-columns: 3fr 1.1fr;
+  }
+}
+
+.exam-main {
+  min-width: 0; /* Prevents overflow in grid items */
+}
+
+.exam-sidebar {
+  position: sticky;
+  top: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Sticky timer display */
+.timer-card {
+  border-top: 4px solid var(--danger);
+  text-align: center;
+}
+
+.timer-display {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: 1px;
+  margin: 0.5rem 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.timer-colon {
+  animation: blink 1s infinite;
+  color: var(--danger);
+  padding: 0 0.1rem;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* Navigation sidebar grid */
+.nav-grid-container {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+}
+
+.nav-num {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background-color: #f1f5f9;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.nav-num:hover {
+  border-color: var(--text-muted);
+  color: var(--text-dark);
+}
+
+.nav-num.active {
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 2px var(--secondary);
+}
+
+.nav-num.answered {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.nav-num.uraian-type {
+  border-style: dashed;
+}
+
+/* Question layout */
+.soal-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.soal-item {
+  scroll-margin-top: 100px; /* offset for sticky navbar */
+  transition: var(--transition);
+}
+
+.soal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.soal-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primary);
+  background-color: var(--primary-light);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+}
+
+.soal-badge.uraian {
+  color: var(--secondary);
+  background-color: #e0e7ff;
+}
+
+.soal-bobot {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.soal-tanya {
+  font-size: 1.05rem;
+  color: var(--text-dark);
+  font-weight: 500;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+/* Multiple choice options */
+.opsi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.opsi-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  background-color: #ffffff;
+}
+
+.opsi-item:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.opsi-item input[type="radio"] {
+  margin-top: 0.25rem;
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.opsi-label {
+  font-weight: 700;
+  color: var(--text-dark);
+  min-width: 20px;
+}
+
+.opsi-teks {
+  color: var(--text-body);
+  flex-grow: 1;
+}
+
+/* Highlight active option selection */
+.opsi-item.selected {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+.opsi-item.selected .opsi-label {
+  color: var(--primary-hover);
+}
+
+/* Essay Textarea */
+.essay-box {
+  width: 100%;
+  min-height: 160px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  transition: var(--transition);
+  resize: vertical;
+}
+
+.essay-box:focus {
+  outline: none;
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+/* MathJax custom font-size adjust for math blocks */
+.mjx-chtml {
+  font-size: 105% !important;
+}
+
+/* Overlay for exam lock (time out / submitted) */
+.exam-lock-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  padding: 1.5rem;
+}
+
+.exam-lock-card {
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 3rem 2rem;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  color: var(--text-body);
+  box-shadow: var(--shadow-xl);
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ==========================================
+   PHASE 3: ANTI-CHEATING & SECURITY STYLES
+   ========================================== */
+
+/* Start Exam Landing Page Overlay */
+.start-exam-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at top right, rgba(13, 148, 136, 0.08), transparent),
+              radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.08), transparent),
+              #f8fafc;
+  z-index: 998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.start-exam-card {
+  max-width: 550px;
+  width: 100%;
+  border-top: 4px solid var(--primary);
+  background-color: #ffffff;
+}
+
+.rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rule-item:last-child {
+  border-bottom: none;
+}
+
+.rule-icon {
+  margin-top: 0.2rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.rule-icon.danger {
+  color: var(--danger);
+}
+
+/* Fullscreen Block Red Blocker Overlay */
+.fullscreen-block-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(239, 68, 68, 0.95);
+  backdrop-filter: blur(12px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.fullscreen-block-card {
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 3rem 2rem;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  color: var(--text-body);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-top: 5px solid var(--danger);
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+/* Custom Warning Modal (Tab Switch Warning) */
+.warning-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.warning-modal-card {
+  background-color: #ffffff;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--danger);
+  padding: 2rem;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+  animation: bounceIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bounceIn {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+

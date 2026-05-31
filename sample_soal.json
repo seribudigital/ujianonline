@@ -1,0 +1,30 @@
+{
+  "madrasah": "MAN 1 Kota Malang",
+  "mapel_nama": "Bahasa Indonesia",
+  "kelas": "XII - MIPA 3",
+  "semester": "Genap",
+  "tahun": "2025/2026",
+  "waktu_menit": 120,
+  "guru": "Dra. Hajah Siti Aminah, M.Pd.",
+  "paket": "Ujian Akhir Jenjang - Utama",
+  "soal_pg": [
+    {
+      "id": 1,
+      "tanya": "Apakah kepanjangan dari CBT?",
+      "opsi": ["Computer Based Test", "Computer Basic Training", "Common Brain Tool", "Central Board of Technology"],
+      "kunci": "A"
+    },
+    {
+      "id": 2,
+      "tanya": "Karya sastra berbentuk prosa yang menceritakan tentang kehidupan seseorang secara ringkas disebut...",
+      "opsi": ["Novel", "Cerpen", "Drama", "Puisi"],
+      "kunci": "B"
+    }
+  ],
+  "soal_uraian": [
+    {
+      "id": 1,
+      "tanya": "Jelaskan perbedaan antara paragraf deduktif dan induktif!"
+    }
+  ]
+}

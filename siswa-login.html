@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartExam-Online | Login Siswa</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <div class="login-wrapper">
+
+    <div class="login-card card">
+      <div class="login-header">
+        <div class="login-logo">
+          <i data-lucide="graduation-cap" style="width: 32px; height: 32px;"></i>
+        </div>
+        <h2>SmartExam-Online</h2>
+        <p style="color: var(--text-muted); font-size: 0.875rem;">Platform Ujian Mandiri Siswa</p>
+      </div>
+
+      <!-- Live status of active session -->
+      <div id="session-status-banner" style="margin-bottom: 1.5rem;"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="nisn" class="form-label">NISN (Nomor Induk Siswa Nasional)</label>
+          <input type="text" id="nisn" class="form-control" placeholder="Contoh: 0012345678" required autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+          <small id="nisn-hint" style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-top: 4px;">
+            Masukkan 10 digit NISN Anda
+          </small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="nama" class="form-label">Nama Lengkap Siswa</label>
+          <input type="text" id="nama" class="form-control" placeholder="Nama sesuai daftar hadir" required autocomplete="off">
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="btn-submit" style="width: 100%;">
+          <i data-lucide="log-in"></i> Masuk Ruang Ujian
+        </button>
+      </form>
+    </div>
+
+    <!-- Mini Footer -->
+    <div style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--text-muted);">
+      <p>Koneksi: Client-Side (Siap diintegrasikan ke Firebase/Supabase)</p>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    const form = document.getElementById('login-form');
+    const nisnInput = document.getElementById('nisn');
+    const namaInput = document.getElementById('nama');
+    const btnSubmit = document.getElementById('btn-submit');
+    const sessionStatusBanner = document.getElementById('session-status-banner');
+
+    let activeSession = null;
+
+    // Check if exam session and student session already active
+    function checkSessions() {
+      const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+      const studentSessionRaw = localStorage.getItem('smartexam_student_session');
+
+      if (activeSessionRaw) {
+        try {
+          activeSession = JSON.parse(activeSessionRaw);
+          const meta = activeSession.metadata ? activeSession.metadata : activeSession;
+          
+          // Display exam details
+          sessionStatusBanner.innerHTML = `
+            <div class="alert alert-info" style="margin-bottom: 0;">
+              <i data-lucide="book-open" style="width: 18px; height: 18px; flex-shrink: 0; color: var(--secondary);"></i>
+              <div>
+                <strong style="color: var(--text-dark);">${meta.mapel_nama}</strong>
+                <p style="font-size: 0.75rem; margin-top: 2px;">
+                  Madrasah: ${meta.madrasah}<br>
+                  Kelas: ${meta.kelas} | Paket: ${meta.paket}
+                </p>
+              </div>
+            </div>
+          `;
+          
+          // Auto-redirect if student session already present
+          if (studentSessionRaw) {
+            window.location.href = 'siswa-ujian.html';
+          }
+        } catch (e) {
+          console.error("Gagal membaca active session", e);
+          localStorage.removeItem('smartexam_active_session');
+          showNoSessionBanner();
+        }
+      } else {
+        showNoSessionBanner();
+      }
+      lucide.createIcons();
+    }
+
+    function showNoSessionBanner() {
+      sessionStatusBanner.innerHTML = `
+        <div class="alert alert-danger" style="margin-bottom: 0;">
+          <i data-lucide="alert-octagon" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+          <div>
+            <strong>Sesi Ujian Belum Aktif</strong>
+            <p style="font-size: 0.75rem; margin-top: 2px;">
+              Silakan hubungi proktor/pengawas ruang untuk mengunggah soal ujian terlebih dahulu.
+            </p>
+          </div>
+        </div>
+      `;
+      // Disable login button
+      btnSubmit.disabled = true;
+      btnSubmit.style.opacity = '0.5';
+      btnSubmit.style.cursor = 'not-allowed';
+    }
+
+    // Input validations for NISN (numeric and ideally 10 digits)
+    nisnInput.addEventListener('input', (e) => {
+      // Clean non-digits
+      const cleanValue = e.target.value.replace(/\D/g, '');
+      e.target.value = cleanValue;
+
+      const hint = document.getElementById('nisn-hint');
+      if (cleanValue.length > 0 && cleanValue.length !== 10) {
+        hint.style.color = 'var(--danger)';
+        hint.textContent = `NISN harus 10 digit (saat ini: ${cleanValue.length} digit)`;
+      } else if (cleanValue.length === 10) {
+        hint.style.color = 'var(--success)';
+        hint.textContent = 'NISN valid (10 digit)';
+      } else {
+        hint.style.color = 'var(--text-muted)';
+        hint.textContent = 'Masukkan 10 digit NISN Anda';
+      }
+    });
+
+    // Form submit handler
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (!activeSession) {
+        alert('Sesi ujian belum siap. Silakan hubungi proktor.');
+        return;
+      }
+
+      const nisnVal = nisnInput.value.trim();
+      const namaVal = namaInput.value.trim();
+
+      if (nisnVal.length !== 10) {
+        alert('NISN harus tepat 10 digit angka!');
+        return;
+      }
+
+      if (namaVal.length < 2) {
+        alert('Silakan masukkan nama lengkap Anda dengan benar!');
+        return;
+      }
+
+      // Save Student info to localStorage
+      const studentSession = {
+        nisn: nisnVal,
+        nama: namaVal,
+        waktu_login: new Date().toISOString()
+      };
+
+      localStorage.setItem('smartexam_student_session', JSON.stringify(studentSession));
+
+      // Redirect to exam screen
+      window.location.href = 'siswa-ujian.html';
+    });
+
+    // Run session checks
+    checkSessions();
+  </script>
+</body>
+</html>

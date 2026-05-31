@@ -1,0 +1,464 @@
+{
+  "exported_at": "2026-05-31T03:51:41.885Z",
+  "metadata": {
+    "madrasah": "ma al-khoir islamic school bin baz 5",
+    "tingkat": "MA",
+    "mapel_nama": "Matematika Peminatan",
+    "mapel_id": "mapel-matematika-peminatan-ma",
+    "kelas": "11",
+    "semester": "Genap",
+    "tahun": "2025/2026",
+    "waktu_menit": 90,
+    "guru": "Ahmad Nam Fahmi",
+    "paket": "A"
+  },
+  "soal_pg": [
+    {
+      "no_urut": 1,
+      "id": "soal-ai-1780149082256-vt90-3-991",
+      "pertanyaan": "Bayangan titik $R(-5,2)$ oleh refleksi terhadap sumbu-$y$ adalah ....",
+      "pilihan": {
+        "A": "$(-5,-2)$",
+        "B": "$(5,2)$",
+        "C": "$(5,-2)$",
+        "D": "$(-2,5)$",
+        "E": "$(2,-5)$"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Mudah",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 2,
+      "id": "soal-ai-1780148896679-mclj-5-645",
+      "pertanyaan": "Titik $A(1, 2)$ mengalami dilatasi terhadap titik asal $O(0, 0)$ dengan faktor skala $k = 3$. Bayangan titik $A$ adalah...",
+      "pilihan": {
+        "A": "$A'(4, 5)$",
+        "B": "$A'(1, 6)$",
+        "C": "$A'(3, 6)$",
+        "D": "$A'(3, 2)$",
+        "E": "$A'(6, 3)$"
+      },
+      "jawaban_benar": "C",
+      "bobot": "Mudah",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 3,
+      "id": "soal-ai-1780131692884-gqsb-7-386",
+      "pertanyaan": "Bayangan titik $D(3, 1)$ oleh rotasi sebesar $90^\\circ$ berlawanan arah jarum jam dengan pusat $O(0,0)$ adalah...",
+      "pilihan": {
+        "A": "$D'(1, 3)$",
+        "B": "$D'(-1, 3)$",
+        "C": "$D'(1, -3)$",
+        "D": "$D'(-1, -3)$",
+        "E": "$D'(-3, 1)$"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Mudah",
+      "bab": "transformasi",
+      "gambar": null
+    },
+    {
+      "no_urut": 4,
+      "id": "soal-wd-1780132193316-ixxe",
+      "pertanyaan": "Bayangan titik $D(3, 1)$ oleh rotasi sebesar $90^\\circ$ berlawanan arah jarum jam dengan pusat $O(0,0)$ adalah...",
+      "pilihan": {
+        "A": "$D'(1, 3)$",
+        "B": "$D'(-1, 3)$",
+        "C": "$D'(1, -3)$",
+        "D": "$D'(-1, -3)$",
+        "E": "$D'(-3, 1)$"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Mudah",
+      "bab": "transformasi",
+      "gambar": null
+    },
+    {
+      "no_urut": 5,
+      "id": "soal-wd-1780132193316-qvqf",
+      "pertanyaan": "Titik $P(x, y)$ ditranslasikan oleh $T = \\begin{pmatrix} -2 \\\\ 5 \\end{pmatrix}$ menghasilkan bayangan $P'(3, -1)$. Koordinat titik $P$ adalah...",
+      "pilihan": {
+        "A": "$(1, -6)$",
+        "B": "$(5, -6)$",
+        "C": "$(5, 4)$",
+        "D": "$(-5, 6)$",
+        "E": "$(-1, 4)$"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Mudah",
+      "bab": "transformasi",
+      "gambar": null
+    },
+    {
+      "no_urut": 6,
+      "id": "soal-wd-1780132193316-qslr",
+      "pertanyaan": "Bayangan titik $A(-2, 5)$ oleh translasi $T = \\begin{pmatrix} 4 \\\\ -3 \\end{pmatrix}$ adalah...",
+      "pilihan": {
+        "A": "$A'(2, 2)$",
+        "B": "$A'(-6, 8)$",
+        "C": "$A'(6, -2)$",
+        "D": "$A'(-2, -2)$",
+        "E": "$A'(2, 8)$"
+      },
+      "jawaban_benar": "A",
+      "bobot": "Mudah",
+      "bab": "transformasi",
+      "gambar": null
+    },
+    {
+      "no_urut": 7,
+      "id": "soal-ai-1780149082256-8451-1-478",
+      "pertanyaan": "Titik $P(-4,5)$ ditranslasikan oleh vektor $T = \\begin{pmatrix} 6 \\\\ -2 \\end{pmatrix}$. Koordinat bayangan titik $P'$ adalah ....",
+      "pilihan": {
+        "A": "$(2,3)$",
+        "B": "$(2,7)$",
+        "C": "$(-10,3)$",
+        "D": "$(10,-3)$",
+        "E": "$(-2,3)$"
+      },
+      "jawaban_benar": "A",
+      "bobot": "Mudah",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 8,
+      "id": "soal-ai-1780131692884-rfdk-1-949",
+      "pertanyaan": "Titik $P(x, y)$ ditranslasikan oleh $T = \\begin{pmatrix} -2 \\\\ 5 \\end{pmatrix}$ menghasilkan bayangan $P'(3, -1)$. Koordinat titik $P$ adalah...",
+      "pilihan": {
+        "A": "$(1, -6)$",
+        "B": "$(5, -6)$",
+        "C": "$(5, 4)$",
+        "D": "$(-5, 6)$",
+        "E": "$(-1, 4)$"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Mudah",
+      "bab": "transformasi",
+      "gambar": null
+    },
+    {
+      "no_urut": 9,
+      "id": "soal-ai-1780148896679-2uuc-2-295",
+      "pertanyaan": "Titik $R(-2, 6)$ ditranslasikan oleh vektor $\\mathbf{T} = \\begin{pmatrix} 4 \\\\ -3 \\end{pmatrix}$. Bayangan titik $R$ adalah...",
+      "pilihan": {
+        "A": "$R'(2, 3)$",
+        "B": "$R'(-6, 9)$",
+        "C": "$R'(6, -9)$",
+        "D": "$R'(2, -3)$",
+        "E": "$R'(-2, 3)$"
+      },
+      "jawaban_benar": "A",
+      "bobot": "Mudah",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 10,
+      "id": "soal-ai-1780148896679-pck6-3-673",
+      "pertanyaan": "Titik $S(2, 3)$ direfleksikan terhadap garis $y = x$. Bayangan titik $S$ adalah...",
+      "pilihan": {
+        "A": "$S'(-3, -2)$",
+        "B": "$S'(2, -3)$",
+        "C": "$S'(3, 2)$",
+        "D": "$S'(-2, 3)$",
+        "E": "$S'(-3, 2)$"
+      },
+      "jawaban_benar": "C",
+      "bobot": "Mudah",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 11,
+      "id": "soal-wd-1780132193316-xeju",
+      "pertanyaan": "Koordinat bayangan titik $C(-1, 4)$ setelah dicerminkan terhadap garis $x = 3$ adalah...",
+      "pilihan": {
+        "A": "$C'(7, 4)$",
+        "B": "$C'(5, 4)$",
+        "C": "$C'(-1, 2)$",
+        "D": "$C'(7, -4)$",
+        "E": "$C'(-5, 4)$"
+      },
+      "jawaban_benar": "A",
+      "bobot": "Mudah",
+      "bab": "transformasi",
+      "gambar": null
+    },
+    {
+      "no_urut": 12,
+      "id": "soal-ai-1780149082256-mkbq-0-503",
+      "pertanyaan": "Titik $A(2,-1)$ ditranslasikan oleh vektor $T = \\begin{pmatrix} 3 \\\\ 4 \\end{pmatrix}$. Koordinat bayangan titik $A'$ adalah ....",
+      "pilihan": {
+        "A": "$(5,3)$",
+        "B": "$(1,3)$",
+        "C": "$(5,-5)$",
+        "D": "$(-1,3)$",
+        "E": "$(3,4)$"
+      },
+      "jawaban_benar": "A",
+      "bobot": "Mudah",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 13,
+      "id": "soal-wd-1780132193316-7fv3",
+      "pertanyaan": "Titik $B(5, -3)$ direfleksikan terhadap garis $y = x$. Koordinat bayangan titik $B$ adalah...",
+      "pilihan": {
+        "A": "$B'(3, -5)$",
+        "B": "$B'(-3, 5)$",
+        "C": "$B'(-5, 3)$",
+        "D": "$B'(-3, -5)$",
+        "E": "$B'(5, 3)$"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Mudah",
+      "bab": "transformasi",
+      "gambar": null
+    },
+    {
+      "no_urut": 14,
+      "id": "soal-ai-1780149082256-2cp8-2-164",
+      "pertanyaan": "Bayangan titik $Q(3,-2)$ oleh refleksi terhadap sumbu-$x$ adalah ....",
+      "pilihan": {
+        "A": "$(-3,-2)$",
+        "B": "$(3,2)$",
+        "C": "$(-3,2)$",
+        "D": "$(2,3)$",
+        "E": "$(-2,3)$"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Mudah",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 15,
+      "id": "soal-ai-1780131692884-k6uz-5-763",
+      "pertanyaan": "Koordinat bayangan titik $C(-1, 4)$ setelah dicerminkan terhadap garis $x = 3$ adalah...",
+      "pilihan": {
+        "A": "$C'(7, 4)$",
+        "B": "$C'(5, 4)$",
+        "C": "$C'(-1, 2)$",
+        "D": "$C'(7, -4)$",
+        "E": "$C'(-5, 4)$"
+      },
+      "jawaban_benar": "A",
+      "bobot": "Mudah",
+      "bab": "transformasi",
+      "gambar": null
+    },
+    {
+      "no_urut": 16,
+      "id": "soal-ai-1780127662295-1an8-1-534",
+      "pertanyaan": "Persamaan bayangan garis $2x - y + 4 = 0$ oleh rotasi dengan pusat $O(0,0)$ sejauh $90^\\circ$ berlawanan arah jarum jam adalah...",
+      "pilihan": {
+        "A": "$x + 2y + 4 = 0$",
+        "B": "$x - 2y + 4 = 0$",
+        "C": "$2x + y - 4 = 0$",
+        "D": "$x + 2y - 4 = 0$",
+        "E": "$2x - y - 4 = 0$"
+      },
+      "jawaban_benar": "A",
+      "bobot": "Sedang",
+      "bab": "Umum",
+      "gambar": null
+    },
+    {
+      "no_urut": 17,
+      "id": "soal-ai-1780148896679-ez9z-8-403",
+      "pertanyaan": "Titik $C(a, b)$ dirotasikan $270°$ berlawanan arah jarum jam (ekuivalen $90°$ searah jarum jam) terhadap titik asal. Rumus bayangan titik $C$ adalah...",
+      "pilihan": {
+        "A": "$C'(-a, b)$",
+        "B": "$C'(-b, a)$",
+        "C": "$C'(b, -a)$",
+        "D": "$C'(-a, -b)$",
+        "E": "$C'(a, -b)$"
+      },
+      "jawaban_benar": "C",
+      "bobot": "Sedang",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 18,
+      "id": "soal-ai-1780127535247-3yij-0-413",
+      "pertanyaan": "Garis $g$ dengan persamaan $3x - 2y + 6 = 0$ dirotasikan sebesar $180^\\circ$ dengan pusat $P(1, -2)$, kemudian dicerminkan terhadap garis $y = -x$. Persamaan bayangan akhir dari garis $g$ adalah...",
+      "pilihan": {
+        "A": "$2x - 3y - 16 = 0$",
+        "B": "$2x + 3y + 16 = 0$",
+        "C": "$3x - 2y - 12 = 0$",
+        "D": "$2x - 3y + 16 = 0$",
+        "E": "$3x + 2y + 12 = 0$"
+      },
+      "jawaban_benar": "D",
+      "bobot": "Sedang",
+      "bab": "Umum",
+      "gambar": null
+    },
+    {
+      "no_urut": 19,
+      "id": "soal-ai-1780127662295-v1tn-0-205",
+      "pertanyaan": "Persamaan bayangan kurva parabola $y = x^2 - 4x + 3$ jika dicerminkan terhadap sumbu $X$ adalah...",
+      "pilihan": {
+        "A": "$y = -x^2 + 4x - 3$",
+        "B": "$y = -x^2 - 4x + 3$",
+        "C": "$y = x^2 + 4x + 3$",
+        "D": "$y = -x^2 + 4x + 3$",
+        "E": "$y = x^2 - 4x - 3$"
+      },
+      "jawaban_benar": "A",
+      "bobot": "Sedang",
+      "bab": "Umum",
+      "gambar": null
+    },
+    {
+      "no_urut": 20,
+      "id": "soal-ai-1780125800708-jook",
+      "pertanyaan": "Titik $B(-2, 7)$ direfleksikan terhadap sumbu $X$. Koordinat bayangan titik $B$ adalah...",
+      "pilihan": {
+        "A": "$B'(2, 7)$",
+        "B": "$B'(-2, -7)$",
+        "C": "$B'(2, -7)$",
+        "D": "$B'(7, -2)$",
+        "E": "$B'(-7, 2)$"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Sedang",
+      "bab": "Umum",
+      "gambar": null
+    },
+    {
+      "no_urut": 21,
+      "id": "soal-ai-1780148896679-7bfk-7-528",
+      "pertanyaan": "Segitiga dengan titik-titik $A(1,0)$, $B(3,0)$, dan $C(2,4)$ direfleksikan terhadap sumbu $Y$. Luas bayangan segitiga $A'B'C'$ adalah...",
+      "pilihan": {
+        "A": "2 satuan luas",
+        "B": "4 satuan luas",
+        "C": "8 satuan luas",
+        "D": "16 satuan luas",
+        "E": "6 satuan luas"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Sedang",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 22,
+      "id": "soal-ai-1780125518458-dfz8",
+      "pertanyaan": "Bayangan dari titik $A(3, -5)$ oleh translasi $T = \\begin{pmatrix} -2 \\\\ 4 \\end{pmatrix}$ adalah...",
+      "pilihan": {
+        "A": "$A'(1, -1)$",
+        "B": "$A'(5, -9)$",
+        "C": "$A'(-1, 1)$",
+        "D": "$A'(1, 1)$",
+        "E": "$A'(-5, 9)$"
+      },
+      "jawaban_benar": "A",
+      "bobot": "Sedang",
+      "bab": "Umum",
+      "gambar": null
+    },
+    {
+      "no_urut": 23,
+      "id": "soal-ai-1780149082256-8rq8-5-71",
+      "pertanyaan": "Titik $T(2,5)$ dirotasikan terhadap titik pusat $(0,0)$ sebesar $90^\\circ$ berlawanan arah jarum jam. Koordinat bayangannya adalah ....",
+      "pilihan": {
+        "A": "$(5,-2)$",
+        "B": "$(-5,2)$",
+        "C": "$(-2,-5)$",
+        "D": "$(2,-5)$",
+        "E": "$(-5,-2)$"
+      },
+      "jawaban_benar": "B",
+      "bobot": "Sedang",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 24,
+      "id": "soal-ai-1780131692884-feak-9-748",
+      "pertanyaan": "Persamaan bayangan kurva lingkaran $x^2 + y^2 = 16$ oleh rotasi dengan pusat $O(0,0)$ sejauh $90^\\circ$ searah jarum jam adalah...",
+      "pilihan": {
+        "A": "$x^2 - y^2 = 16$",
+        "B": "$y^2 - x^2 = 16$",
+        "C": "$x^2 + y^2 = 16$",
+        "D": "$x^2 + y^2 = -16$",
+        "E": "$x^2 + y^2 = 4$"
+      },
+      "jawaban_benar": "C",
+      "bobot": "Sulit",
+      "bab": "transformasi",
+      "gambar": null
+    },
+    {
+      "no_urut": 25,
+      "id": "soal-ai-1780148896679-e9e0-6-599",
+      "pertanyaan": "Titik $B(6, 4)$ mengalami dilatasi terhadap pusat $P(2, 1)$ dengan faktor skala $k = \\frac{1}{2}$. Bayangan titik $B$ adalah...",
+      "pilihan": {
+        "A": "$B'(4, 2)$",
+        "B": "$B'(3, 2)$",
+        "C": "$B'(4, \\frac{5}{2})$",
+        "D": "$B'(3, \\frac{5}{2})$",
+        "E": "$B'(2, 4)$"
+      },
+      "jawaban_benar": "C",
+      "bobot": "Sulit",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    }
+  ],
+  "soal_uraian": [
+    {
+      "no_urut": 1,
+      "id": "soal-ai-1780196066691-wyty-7-214",
+      "pertanyaan": "Ellips $\\frac{x^2}{9} + \\frac{y^2}{4} = 1$ direfleksikan terhadap garis $y = -x$. Tentukan persamaan bayangan ellips tersebut!",
+      "jawaban_benar": "Refleksi terhadap garis $y = -x$: $(x, y) \\rightarrow (-y, -x)$, maka titik asal $(-y, -x)$ disubstitusi:\n$\\frac{(-y)^2}{9} + \\frac{(-x)^2}{4} = 1$\n$\\frac{y^2}{9} + \\frac{x^2}{4} = 1$\nAtau ditulis: $\\frac{x^2}{4} + \\frac{y^2}{9} = 1$\nJadi bayangan ellips adalah $\\frac{x^2}{4} + \\frac{y^2}{9} = 1$ (sumbu panjang berpindah ke sumbu $Y$).",
+      "bobot": "Sulit",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 2,
+      "id": "soal-ai-1780196066691-ubjc-6-36",
+      "pertanyaan": "Parabola $y = x^2 - 2x + 4$ dirotasikan sebesar $180°$ dengan pusat $O(0,0)$. Tentukan persamaan bayangan parabola tersebut!",
+      "jawaban_benar": "Rotasi $180°$ dengan pusat $O(0,0)$: $(x, y) \\rightarrow (-x, -y)$, maka titik asal $(-x, -y)$ disubstitusi:\n$-y = (-x)^2 - 2(-x) + 4$\n$-y = x^2 + 2x + 4$\n$y = -x^2 - 2x - 4$\nJadi persamaan bayangan parabola adalah $y = -x^2 - 2x - 4$.",
+      "bobot": "Sedang",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 3,
+      "id": "soal-ai-1780195845406-6xz3-2-382",
+      "pertanyaan": "Titik $B(-4, 6)$ direfleksikan terhadap sumbu $X$. Tentukan koordinat bayangan titik $B$!",
+      "jawaban_benar": "Rumus refleksi terhadap sumbu $X$: $(x, y) \\rightarrow (x, -y)$\n$B'(-4, -6)$\nJadi bayangan titik $B$ adalah $B'(-4, -6)$.",
+      "bobot": "Mudah",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 4,
+      "id": "soal-ai-1780195845406-qyhv-9-430",
+      "pertanyaan": "Titik $H(2, 4)$ mengalami dua transformasi berurutan: pertama ditranslasikan oleh $T = \\begin{pmatrix} -3 \\\\ 1 \\end{pmatrix}$, kemudian hasilnya dirotasikan sebesar $90°$ searah jarum jam dengan pusat $O(0,0)$. Tentukan koordinat bayangan akhir titik $H$ dan uraikan setiap langkah transformasinya!",
+      "jawaban_benar": "Langkah 1 – Translasi dengan $T = \\begin{pmatrix} -3 \\\\ 1 \\end{pmatrix}$:\n$H(2,4) \\rightarrow H'(2+(-3),\\ 4+1) = H'(-1, 5)$\nLangkah 2 – Rotasi $90°$ searah jarum jam dengan pusat $O(0,0)$: $(x, y) \\rightarrow (y, -x)$\n$H'(-1, 5) \\rightarrow H''(5, -(-1)) = H''(5, 1)$\nJadi koordinat bayangan akhir titik $H$ adalah $H''(5, 1)$.",
+      "bobot": "Sulit",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    },
+    {
+      "no_urut": 5,
+      "id": "soal-ai-1780196066691-npe6-9-310",
+      "pertanyaan": "Lingkaran $(x-3)^2 + (y-2)^2 = 4$ mengalami dua transformasi berurutan: pertama dirotasikan $90°$ berlawanan arah jarum jam dengan pusat $O(0,0)$, kemudian hasilnya ditranslasikan oleh $T = \\begin{pmatrix} 1 \\\\ -4 \\end{pmatrix}$. Tentukan persamaan dan pusat lingkaran bayangan akhirnya!",
+      "jawaban_benar": "Langkah 1 – Rotasi $90°$ berlawanan arah jarum jam: $(x, y) \\rightarrow (-y, x)$\nPusat lingkaran asal $(3, 2)$ menjadi $(-2, 3)$.\nPersamaan setelah rotasi: $(x+2)^2 + (y-3)^2 = 4$\nLangkah 2 – Translasi $T = \\begin{pmatrix} 1 \\\\ -4 \\end{pmatrix}$:\nPusat $(-2, 3)$ menjadi $(-2+1,\\ 3+(-4)) = (-1, -1)$.\nPersamaan bayangan akhir: $(x+1)^2 + (y+1)^2 = 4$\nJadi bayangan akhir lingkaran berpusat di $(-1, -1)$ dengan jari-jari $2$ dan persamaannya $(x+1)^2 + (y+1)^2 = 4$.",
+      "bobot": "Sulit",
+      "bab": "Transformasi Geometri",
+      "gambar": null
+    }
+  ]
+}
