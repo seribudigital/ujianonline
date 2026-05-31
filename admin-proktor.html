@@ -192,7 +192,19 @@
     // Supabase Configuration
     const SUPABASE_URL = "https://cuqskujuehhgndnazydq.supabase.co/rest/v1/";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cXNrdWp1ZWhoZ25kbmF6eWRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjk0MDQsImV4cCI6MjA5NTgwNTQwNH0.Uacs4kd4qPtO3ig1P_cKM0Rkv0UVsScoGuvx_AxKoPY";
-    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+    // Clean URL to handle rest/v1 suffixes automatically
+    let cleanUrl = SUPABASE_URL.trim();
+    if (cleanUrl.endsWith('/rest/v1/')) {
+      cleanUrl = cleanUrl.slice(0, -9);
+    } else if (cleanUrl.endsWith('/rest/v1')) {
+      cleanUrl = cleanUrl.slice(0, -8);
+    }
+    if (cleanUrl.endsWith('/')) {
+      cleanUrl = cleanUrl.slice(0, -1);
+    }
+
+    const supabase = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
 
     // Initialize Lucide icons
     lucide.createIcons();
@@ -375,34 +387,42 @@
 
       const reader = new FileReader();
       reader.onload = async function(event) {
+        let rawData;
         try {
-          const rawData = JSON.parse(event.target.result);
-          const meta = rawData.metadata ? rawData.metadata : rawData;
-          
-          // Validation checklist
-          const requiredKeys = ['madrasah', 'mapel_nama', 'kelas', 'semester', 'tahun', 'waktu_menit', 'guru', 'paket'];
-          const missingKeys = [];
+          rawData = JSON.parse(event.target.result);
+        } catch (e) {
+          showAlert('Gagal mengurai file JSON. Pastikan format file Anda benar.', 'danger');
+          console.error(e);
+          return;
+        }
 
-          requiredKeys.forEach(key => {
-            if (meta[key] === undefined) {
-              missingKeys.push(key);
-            }
-          });
+        const meta = rawData.metadata ? rawData.metadata : rawData;
+        
+        // Validation checklist
+        const requiredKeys = ['madrasah', 'mapel_nama', 'kelas', 'semester', 'tahun', 'waktu_menit', 'guru', 'paket'];
+        const missingKeys = [];
 
-          if (missingKeys.length > 0) {
-            showAlert(`File JSON tidak valid. Kunci berikut hilang pada metadata: ${missingKeys.join(', ')}`, 'danger');
-            return;
+        requiredKeys.forEach(key => {
+          if (meta[key] === undefined) {
+            missingKeys.push(key);
           }
+        });
 
-          if (!rawData.soal_pg) rawData.soal_pg = [];
-          if (!rawData.soal_uraian) rawData.soal_uraian = [];
+        if (missingKeys.length > 0) {
+          showAlert(`File JSON tidak valid. Kunci berikut hilang pada metadata: ${missingKeys.join(', ')}`, 'danger');
+          return;
+        }
 
-          // Generate mapel_id unique
-          const mapelId = (meta.mapel_nama + '_' + meta.kelas + '_' + meta.paket + '_' + meta.tahun).toLowerCase().replace(/[^a-z0-9]/g, '_');
-          rawData.id = mapelId;
+        if (!rawData.soal_pg) rawData.soal_pg = [];
+        if (!rawData.soal_uraian) rawData.soal_uraian = [];
 
-          // Upsert to Supabase
-          if (supabase) {
+        // Generate mapel_id unique
+        const mapelId = (meta.mapel_nama + '_' + meta.kelas + '_' + meta.paket + '_' + meta.tahun).toLowerCase().replace(/[^a-z0-9]/g, '_');
+        rawData.id = mapelId;
+
+        // Upsert to Supabase
+        if (supabase) {
+          try {
             const { error } = await supabase
               .from('ujian_aktif')
               .upsert({
@@ -421,16 +441,16 @@
               showAlert('Gagal mengunggah soal ke Supabase: ' + error.message, 'danger');
               return;
             }
+          } catch (err) {
+            showAlert('Koneksi database cloud error: ' + err.message, 'danger');
+            console.error(err);
+            return;
           }
-
-          localStorage.setItem('smartexam_active_session', JSON.stringify(rawData));
-          showAlert('Sesi soal ujian berhasil diunggah dan disinkronkan ke Supabase!', 'success');
-          loadActiveSession();
-          
-        } catch (e) {
-          showAlert('Gagal mengurai file JSON. Pastikan format file Anda benar.', 'danger');
-          console.error(e);
         }
+
+        localStorage.setItem('smartexam_active_session', JSON.stringify(rawData));
+        showAlert('Sesi soal ujian berhasil diunggah dan disinkronkan ke Supabase!', 'success');
+        loadActiveSession();
       };
       
       reader.readAsText(file);

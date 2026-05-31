@@ -55,7 +55,19 @@
     // Supabase Configuration
     const SUPABASE_URL = "https://cuqskujuehhgndnazydq.supabase.co/rest/v1/";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cXNrdWp1ZWhoZ25kbmF6eWRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjk0MDQsImV4cCI6MjA5NTgwNTQwNH0.Uacs4kd4qPtO3ig1P_cKM0Rkv0UVsScoGuvx_AxKoPY";
-    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+    // Clean URL to handle rest/v1 suffixes automatically
+    let cleanUrl = SUPABASE_URL.trim();
+    if (cleanUrl.endsWith('/rest/v1/')) {
+      cleanUrl = cleanUrl.slice(0, -9);
+    } else if (cleanUrl.endsWith('/rest/v1')) {
+      cleanUrl = cleanUrl.slice(0, -8);
+    }
+    if (cleanUrl.endsWith('/')) {
+      cleanUrl = cleanUrl.slice(0, -1);
+    }
+
+    const supabase = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
 
     // Initialize Lucide icons
     lucide.createIcons();
