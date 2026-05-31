@@ -704,9 +704,18 @@
           ];
           worksheet['!cols'] = max_widths;
 
-          // Generate Excel file and trigger download
+          // Generate Excel file and trigger download using robust Blob array buffer
           const fileName = `Rekap_Hasil_Ujian_${mapelName.replace(/[^a-zA-Z0-9]/g, '_')}.xlsx`;
-          XLSX.writeFile(workbook, fileName);
+          const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+          const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+          const url = window.URL.createObjectURL(blob);
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.href = url;
+          downloadAnchor.download = fileName;
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          document.body.removeChild(downloadAnchor);
+          window.URL.revokeObjectURL(url);
           
           showAlert('Berhasil mengekspor semua hasil ujian ke Excel.', 'success');
         } catch (err) {
