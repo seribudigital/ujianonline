@@ -204,7 +204,7 @@
       cleanUrl = cleanUrl.slice(0, -1);
     }
 
-    const supabase = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
+    const supabaseClient = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
 
     // Initialize Lucide icons
     lucide.createIcons();
@@ -263,8 +263,8 @@
           idUjianAktif = session.id;
 
           // Double check with Supabase database
-          if (supabase) {
-            const { data, error } = await supabase
+          if (supabaseClient) {
+            const { data, error } = await supabaseClient
               .from('ujian_aktif')
               .select('*')
               .eq('id', idUjianAktif)
@@ -334,8 +334,8 @@
     // Clear Session
     btnClearSession.addEventListener('click', async () => {
       if (confirm('Apakah Anda yakin ingin menghapus sesi ujian aktif ini dari cloud? Semua siswa yang sedang ujian akan kehilangan akses.')) {
-        if (supabase && idUjianAktif) {
-          const { error } = await supabase
+        if (supabaseClient && idUjianAktif) {
+          const { error } = await supabaseClient
             .from('ujian_aktif')
             .delete()
             .eq('id', idUjianAktif);
@@ -421,9 +421,9 @@
         rawData.id = mapelId;
 
         // Upsert to Supabase
-        if (supabase) {
+        if (supabaseClient) {
           try {
-            const { error } = await supabase
+            const { error } = await supabaseClient
               .from('ujian_aktif')
               .upsert({
                 id: mapelId,
@@ -458,14 +458,14 @@
 
     // Initialize Live Monitor with Supabase Realtime Channels
     async function initializeLiveMonitor() {
-      if (!supabase || !idUjianAktif) return;
+      if (!supabaseClient || !idUjianAktif) return;
 
       if (realtimeChannel) {
         realtimeChannel.unsubscribe();
       }
 
       // Fetch initial student list
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('jawaban_siswa')
         .select('*')
         .eq('mapel_id', idUjianAktif);
@@ -483,7 +483,7 @@
       }
 
       // Subscribe to Realtime DB updates
-      realtimeChannel = supabase
+      realtimeChannel = supabaseClient
         .channel('room_ujian')
         .on('postgres_changes', { 
           event: '*', 

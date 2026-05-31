@@ -342,7 +342,7 @@
       cleanUrl = cleanUrl.slice(0, -1);
     }
 
-    const supabase = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
+    const supabaseClient = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
 
     // Initialize Lucide Icons
     lucide.createIcons();
@@ -774,9 +774,9 @@
       updateAnswerProgress();
 
       // Sync PG to Supabase
-      if (supabase && activeSession && studentSession) {
+      if (supabaseClient && activeSession && studentSession) {
         try {
-          await supabase
+          await supabaseClient
             .from('jawaban_siswa')
             .update({ jawaban_pg: jawabanSiswa.pg })
             .eq('mapel_id', activeSession.id)
@@ -792,9 +792,9 @@
     function debounceSaveEssay() {
       if (essayDebounceTimeout) clearTimeout(essayDebounceTimeout);
       essayDebounceTimeout = setTimeout(async () => {
-        if (supabase && activeSession && studentSession && !examSubmitted) {
+        if (supabaseClient && activeSession && studentSession && !examSubmitted) {
           try {
-            await supabase
+            await supabaseClient
               .from('jawaban_siswa')
               .update({ jawaban_uraian: jawabanSiswa.uraian })
               .eq('mapel_id', activeSession.id)
@@ -953,7 +953,7 @@
       localStorage.setItem('smartexam_violation_count', storedViolations);
 
       // Sync violation count to Supabase immediately
-      if (supabase && activeSession && studentSession) {
+      if (supabaseClient && activeSession && studentSession) {
         supabase
           .from('jawaban_siswa')
           .update({ violation_count: storedViolations })
@@ -1047,9 +1047,9 @@
 
       // Sync final answers and submission status to Supabase
       const dbStatus = submitType === 'manual' ? 'selesai' : submitType; // 'selesai' | 'timer_expired' | 'violation_locked'
-      if (supabase && activeSession && studentSession) {
+      if (supabaseClient && activeSession && studentSession) {
         try {
-          await supabase
+          await supabaseClient
             .from('jawaban_siswa')
             .update({
               jawaban_pg: jawabanSiswa.pg,
