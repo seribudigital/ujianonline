@@ -316,8 +316,8 @@
       </div>
 
       <div style="background-color: #e0f2fe; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.8rem; color: #0369a1; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; text-align: left;">
-        <i data-lucide="download" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
-        <span>Lembar jawaban hasil ujian (.json) telah sukses diunduh otomatis ke folder Download perangkat Anda.</span>
+        <i data-lucide="shield-check" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+        <span>Ujian Selesai! Terima kasih telah mengerjakan dengan jujur. Data Anda telah tersimpan aman di server madrasah.</span>
       </div>
 
       <button class="btn btn-secondary" id="btn-return-login" style="width: 100%;">
@@ -1063,9 +1063,6 @@
           console.error("Gagal sinkronisasi data submission ke Supabase:", e);
         }
       }
-
-      // Trigger Automatic JSON Download
-      triggerFileDownload(resultPayload);
 
       // Lock all inputs visually
       document.querySelectorAll('input[type="radio"]').forEach(el => el.disabled = true);
