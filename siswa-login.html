@@ -6,6 +6,8 @@
   <title>SmartExam-Online | Login Siswa</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Library CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -45,11 +47,16 @@
 
     <!-- Mini Footer -->
     <div style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--text-muted);">
-      <p>Koneksi: Client-Side (Siap diintegrasikan ke Firebase/Supabase)</p>
+      <p>Koneksi: Cloud Database (Supabase Active)</p>
     </div>
   </div>
 
   <script>
+    // Supabase Configuration
+    const SUPABASE_URL = "https://cuqskujuehhgndnazydq.supabase.co/rest/v1/";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cXNrdWp1ZWhoZ25kbmF6eWRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjk0MDQsImV4cCI6MjA5NTgwNTQwNH0.Uacs4kd4qPtO3ig1P_cKM0Rkv0UVsScoGuvx_AxKoPY";
+    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
     // Initialize Lucide icons
     lucide.createIcons();
 
@@ -62,14 +69,37 @@
     let activeSession = null;
 
     // Check if exam session and student session already active
-    function checkSessions() {
-      const activeSessionRaw = localStorage.getItem('smartexam_active_session');
-      const studentSessionRaw = localStorage.getItem('smartexam_student_session');
+    async function checkSessions() {
+      // Show loading status
+      sessionStatusBanner.innerHTML = `
+        <div class="alert alert-info" style="margin-bottom: 0;">
+          <i data-lucide="refresh-cw" class="lucide-icon" style="width: 18px; height: 18px; flex-shrink: 0; animation: spin 1.5s linear infinite;"></i>
+          <div>
+            <strong>Menghubungkan ke Cloud...</strong>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
 
-      if (activeSessionRaw) {
-        try {
-          activeSession = JSON.parse(activeSessionRaw);
-          const meta = activeSession.metadata ? activeSession.metadata : activeSession;
+      if (!supabase) {
+        showNoSessionBanner("Supabase client belum diinisialisasi.");
+        return;
+      }
+
+      try {
+        // Fetch the latest active exam session from Supabase
+        const { data, error } = await supabase
+          .from('ujian_aktif')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (data) {
+          activeSession = data;
+          const meta = data;
           
           // Display exam details
           sessionStatusBanner.innerHTML = `
@@ -84,30 +114,33 @@
               </div>
             </div>
           `;
-          
+
+          // Save active session locally
+          localStorage.setItem('smartexam_active_session', JSON.stringify(activeSession));
+
           // Auto-redirect if student session already present
+          const studentSessionRaw = localStorage.getItem('smartexam_student_session');
           if (studentSessionRaw) {
             window.location.href = 'siswa-ujian.html';
           }
-        } catch (e) {
-          console.error("Gagal membaca active session", e);
-          localStorage.removeItem('smartexam_active_session');
-          showNoSessionBanner();
+        } else {
+          showNoSessionBanner("Silakan hubungi proktor/pengawas ruang untuk mengunggah soal ujian terlebih dahulu.");
         }
-      } else {
-        showNoSessionBanner();
+      } catch (e) {
+        console.error("Gagal membaca active session dari Supabase", e);
+        showNoSessionBanner("Gagal terhubung ke database. " + e.message);
       }
       lucide.createIcons();
     }
 
-    function showNoSessionBanner() {
+    function showNoSessionBanner(message) {
       sessionStatusBanner.innerHTML = `
         <div class="alert alert-danger" style="margin-bottom: 0;">
           <i data-lucide="alert-octagon" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
           <div>
             <strong>Sesi Ujian Belum Aktif</strong>
             <p style="font-size: 0.75rem; margin-top: 2px;">
-              Silakan hubungi proktor/pengawas ruang untuk mengunggah soal ujian terlebih dahulu.
+              ${message}
             </p>
           </div>
         </div>
@@ -138,7 +171,7 @@
     });
 
     // Form submit handler
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       if (!activeSession) {
@@ -159,17 +192,64 @@
         return;
       }
 
-      // Save Student info to localStorage
-      const studentSession = {
-        nisn: nisnVal,
-        nama: namaVal,
-        waktu_login: new Date().toISOString()
-      };
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i data-lucide="loader" class="lucide-icon" style="animation: spin 1s linear infinite;"></i> Menghubungkan...`;
+      lucide.createIcons();
 
-      localStorage.setItem('smartexam_student_session', JSON.stringify(studentSession));
+      try {
+        // Fetch or create student row in Supabase
+        let { data: studentData, error: selectError } = await supabase
+          .from('jawaban_siswa')
+          .select('*')
+          .eq('mapel_id', activeSession.id)
+          .eq('nisn', nisnVal)
+          .maybeSingle();
 
-      // Redirect to exam screen
-      window.location.href = 'siswa-ujian.html';
+        if (selectError) throw selectError;
+
+        if (!studentData) {
+          // New login, create a record
+          const { data: newRow, error: insertError } = await supabase
+            .from('jawaban_siswa')
+            .insert({
+              mapel_id: activeSession.id,
+              nisn: nisnVal,
+              nama_siswa: namaVal,
+              status_pengumpulan: 'normal',
+              jawaban_pg: {},
+              jawaban_uraian: {},
+              violation_count: 0
+            })
+            .select()
+            .single();
+
+          if (insertError) throw insertError;
+          studentData = newRow;
+        }
+
+        // Save Student info to localStorage (including state from database)
+        const studentSession = {
+          nisn: nisnVal,
+          nama: namaVal,
+          waktu_login: studentData.waktu_mulai
+        };
+
+        localStorage.setItem('smartexam_student_session', JSON.stringify(studentSession));
+        localStorage.setItem('smartexam_jawaban_siswa', JSON.stringify({
+          pg: studentData.jawaban_pg || {},
+          uraian: studentData.jawaban_uraian || {}
+        }));
+        localStorage.setItem('smartexam_violation_count', studentData.violation_count || 0);
+
+        // Redirect to exam screen
+        window.location.href = 'siswa-ujian.html';
+      } catch (err) {
+        alert("Gagal masuk ruang ujian: " + err.message);
+        console.error(err);
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<i data-lucide="log-in"></i> Masuk Ruang Ujian`;
+        lucide.createIcons();
+      }
     });
 
     // Run session checks

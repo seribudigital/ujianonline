@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="style.css">
   <!-- Lucide Icons for premium feel -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Library CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -88,11 +90,15 @@
           <div id="no-session-content">
             <div style="text-align: center; padding: 2rem 0;">
               <i data-lucide="database-backup" style="width: 40px; height: 40px; color: var(--text-muted); margin-bottom: 0.75rem;"></i>
-              <p style="color: var(--text-muted); font-size: 0.875rem;">Belum ada sesi ujian aktif di perangkat ini.</p>
+              <p style="color: var(--text-muted); font-size: 0.875rem;">Belum ada sesi ujian aktif di database cloud.</p>
             </div>
           </div>
 
           <div id="session-active-content" style="display: none;">
+            <div class="info-item">
+              <span class="info-item-label">ID Ujian (Mapel ID)</span>
+              <span class="info-item-value" id="val-mapel-id" style="color: var(--secondary); font-family: monospace;">-</span>
+            </div>
             <div class="info-item">
               <span class="info-item-label">Madrasah</span>
               <span class="info-item-value" id="val-madrasah">-</span>
@@ -133,7 +139,7 @@
             <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;">
               <div style="background-color: var(--primary-light); padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.8rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.5rem;">
                 <i data-lucide="check-circle-2" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
-                <span>Sesi ujian siap diakses oleh siswa di perangkat ini.</span>
+                <span>Sesi ujian siap diakses oleh siswa di database cloud.</span>
               </div>
               <button class="btn btn-danger" id="btn-clear-session" style="width: 100%;">
                 <i data-lucide="trash-2"></i> Hapus Sesi Ujian
@@ -144,6 +150,38 @@
       </div>
     </div>
 
+    <!-- Live Monitor Card -->
+    <div class="card" style="margin-top: 2rem;">
+      <h3 style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; justify-content: space-between;">
+        <span style="display: flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="monitor" style="color: var(--primary);"></i> Live Proktor Monitor
+        </span>
+        <span class="badge badge-success" id="monitor-count">0 Siswa Terdaftar</span>
+      </h3>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">No</th>
+              <th>NISN</th>
+              <th>Nama Siswa</th>
+              <th>Status</th>
+              <th>Pelanggaran</th>
+              <th>Waktu Mulai</th>
+            </tr>
+          </thead>
+          <tbody id="monitor-table-body">
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+                <i data-lucide="users" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted);"></i>
+                Belum ada siswa yang login untuk mata pelajaran aktif ini.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer">
       <p>&copy; 2026 SmartExam-Online (Platform Ujian Siswa). All rights reserved.</p>
@@ -151,6 +189,11 @@
   </div>
 
   <script>
+    // Supabase Configuration
+    const SUPABASE_URL = "https://cuqskujuehhgndnazydq.supabase.co/rest/v1/";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cXNrdWp1ZWhoZ25kbmF6eWRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjk0MDQsImV4cCI6MjA5NTgwNTQwNH0.Uacs4kd4qPtO3ig1P_cKM0Rkv0UVsScoGuvx_AxKoPY";
+    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
     // Initialize Lucide icons
     lucide.createIcons();
 
@@ -164,6 +207,7 @@
     const btnClearSession = document.getElementById('btn-clear-session');
 
     // Metadata DOM fields
+    const valMapelId = document.getElementById('val-mapel-id');
     const valMadrasah = document.getElementById('val-madrasah');
     const valMapel = document.getElementById('val-mapel');
     const valKelas = document.getElementById('val-kelas');
@@ -173,6 +217,15 @@
     const valDurasi = document.getElementById('val-durasi');
     const valSoalPg = document.getElementById('val-soal-pg');
     const valSoalUraian = document.getElementById('val-soal-uraian');
+
+    // Monitor DOM
+    const monitorTableBody = document.getElementById('monitor-table-body');
+    const monitorCount = document.getElementById('monitor-count');
+
+    // State
+    let idUjianAktif = null;
+    let studentsMap = {}; // State of students listed for monitoring
+    let realtimeChannel = null;
 
     // Render alert notification helper
     function showAlert(message, type = 'success') {
@@ -185,23 +238,41 @@
           </div>
         </div>
       `;
-      lucide.createIcons({
-        attrs: {
-          class: ["lucide-icon"]
-        },
-        nameAttr: "data-lucide"
-      });
+      lucide.createIcons();
     }
 
-    // Load active session from localStorage if exists
-    function loadActiveSession() {
+    // Load active session from Supabase (or localStorage fallback)
+    async function loadActiveSession() {
       const activeSessionRaw = localStorage.getItem('smartexam_active_session');
       if (activeSessionRaw) {
         try {
           const session = JSON.parse(activeSessionRaw);
           const meta = session.metadata ? session.metadata : session;
+          idUjianAktif = session.id;
+
+          // Double check with Supabase database
+          if (supabase) {
+            const { data, error } = await supabase
+              .from('ujian_aktif')
+              .select('*')
+              .eq('id', idUjianAktif)
+              .maybeSingle();
+
+            if (error) {
+              console.error("Gagal verifikasi sesi ke Supabase:", error);
+            } else if (!data) {
+              // Session not found in database, clean local storage
+              localStorage.removeItem('smartexam_active_session');
+              showNoSession();
+              return;
+            } else {
+              // Ensure local storage is updated with DB values
+              localStorage.setItem('smartexam_active_session', JSON.stringify(data));
+            }
+          }
           
           // Populate details
+          valMapelId.textContent = idUjianAktif || '-';
           valMadrasah.textContent = meta.madrasah || '-';
           valMapel.textContent = meta.mapel_nama || '-';
           valKelas.textContent = meta.kelas || '-';
@@ -215,6 +286,10 @@
           // Toggle view
           noSessionContent.style.display = 'none';
           sessionActiveContent.style.display = 'block';
+
+          // Initialize Live Monitor
+          initializeLiveMonitor();
+
         } catch (e) {
           console.error("Gagal mengurai smartexam_active_session", e);
           localStorage.removeItem('smartexam_active_session');
@@ -228,14 +303,40 @@
     function showNoSession() {
       noSessionContent.style.display = 'block';
       sessionActiveContent.style.display = 'none';
+      monitorTableBody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+            <i data-lucide="users" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted);"></i>
+            Belum ada ujian aktif. Unggah berkas soal untuk mengaktifkan pemantauan.
+          </td>
+        </tr>
+      `;
+      monitorCount.textContent = "0 Siswa Terdaftar";
+      lucide.createIcons();
+      if (realtimeChannel) {
+        realtimeChannel.unsubscribe();
+        realtimeChannel = null;
+      }
     }
 
     // Clear Session
-    btnClearSession.addEventListener('click', () => {
-      if (confirm('Apakah Anda yakin ingin menghapus sesi ujian aktif ini? Siswa tidak akan bisa melakukan login atau ujian.')) {
+    btnClearSession.addEventListener('click', async () => {
+      if (confirm('Apakah Anda yakin ingin menghapus sesi ujian aktif ini dari cloud? Semua siswa yang sedang ujian akan kehilangan akses.')) {
+        if (supabase && idUjianAktif) {
+          const { error } = await supabase
+            .from('ujian_aktif')
+            .delete()
+            .eq('id', idUjianAktif);
+
+          if (error) {
+            showAlert('Gagal menghapus sesi ujian dari database cloud: ' + error.message, 'danger');
+            return;
+          }
+        }
         localStorage.removeItem('smartexam_active_session');
+        idUjianAktif = null;
         loadActiveSession();
-        showAlert('Sesi ujian telah dihapus.', 'info');
+        showAlert('Sesi ujian telah berhasil dihapus dari cloud.', 'info');
       }
     });
 
@@ -273,11 +374,9 @@
       }
 
       const reader = new FileReader();
-      reader.onload = function(event) {
+      reader.onload = async function(event) {
         try {
           const rawData = JSON.parse(event.target.result);
-          
-          // Check metadata location (nested or flat)
           const meta = rawData.metadata ? rawData.metadata : rawData;
           
           // Validation checklist
@@ -295,13 +394,37 @@
             return;
           }
 
-          // Format check success, save to localStorage
-          // Initialize empty array for questions if not existing
           if (!rawData.soal_pg) rawData.soal_pg = [];
           if (!rawData.soal_uraian) rawData.soal_uraian = [];
 
+          // Generate mapel_id unique
+          const mapelId = (meta.mapel_nama + '_' + meta.kelas + '_' + meta.paket + '_' + meta.tahun).toLowerCase().replace(/[^a-z0-9]/g, '_');
+          rawData.id = mapelId;
+
+          // Upsert to Supabase
+          if (supabase) {
+            const { error } = await supabase
+              .from('ujian_aktif')
+              .upsert({
+                id: mapelId,
+                madrasah: meta.madrasah,
+                mapel_nama: meta.mapel_nama,
+                kelas: meta.kelas,
+                tahun: meta.tahun,
+                paket: meta.paket,
+                waktu_menit: parseInt(meta.waktu_menit) || 90,
+                soal_pg: rawData.soal_pg,
+                soal_uraian: rawData.soal_uraian
+              });
+
+            if (error) {
+              showAlert('Gagal mengunggah soal ke Supabase: ' + error.message, 'danger');
+              return;
+            }
+          }
+
           localStorage.setItem('smartexam_active_session', JSON.stringify(rawData));
-          showAlert('Sesi soal ujian berhasil diunggah dan disimpan ke localStorage!', 'success');
+          showAlert('Sesi soal ujian berhasil diunggah dan disinkronkan ke Supabase!', 'success');
           loadActiveSession();
           
         } catch (e) {
@@ -313,8 +436,132 @@
       reader.readAsText(file);
     }
 
+    // Initialize Live Monitor with Supabase Realtime Channels
+    async function initializeLiveMonitor() {
+      if (!supabase || !idUjianAktif) return;
+
+      if (realtimeChannel) {
+        realtimeChannel.unsubscribe();
+      }
+
+      // Fetch initial student list
+      const { data, error } = await supabase
+        .from('jawaban_siswa')
+        .select('*')
+        .eq('mapel_id', idUjianAktif);
+
+      if (error) {
+        console.error("Gagal mengambil data awal monitoring:", error);
+      } else {
+        studentsMap = {};
+        if (data) {
+          data.forEach(item => {
+            studentsMap[item.nisn] = item;
+          });
+        }
+        renderMonitorTable();
+      }
+
+      // Subscribe to Realtime DB updates
+      realtimeChannel = supabase
+        .channel('room_ujian')
+        .on('postgres_changes', { 
+          event: '*', 
+          filter: `mapel_id=eq.${idUjianAktif}`, 
+          schema: 'public', 
+          table: 'jawaban_siswa' 
+        }, payload => {
+          const oldData = studentsMap[payload.new?.nisn || payload.old?.nisn];
+          const newData = payload.new;
+
+          if (payload.eventType === 'DELETE') {
+            delete studentsMap[payload.old.nisn];
+          } else {
+            // Check for violation count increase
+            if (oldData && newData && newData.violation_count > oldData.violation_count) {
+              newData.isBlinking = true;
+              // Clear blink state after 5 seconds
+              setTimeout(() => {
+                if (studentsMap[newData.nisn]) {
+                  studentsMap[newData.nisn].isBlinking = false;
+                  renderMonitorTable();
+                }
+              }, 5000);
+            }
+            studentsMap[newData.nisn] = newData;
+          }
+          renderMonitorTable();
+        })
+        .subscribe();
+    }
+
+    // Render the monitoring table body
+    function renderMonitorTable() {
+      const studentsList = Object.values(studentsMap);
+      
+      if (studentsList.length === 0) {
+        monitorTableBody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              <i data-lucide="users" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted);"></i>
+              Belum ada siswa yang login untuk mata pelajaran aktif ini.
+            </td>
+          </tr>
+        `;
+        monitorCount.textContent = "0 Siswa Terdaftar";
+        lucide.createIcons();
+        return;
+      }
+
+      // Sort by name
+      studentsList.sort((a, b) => a.nama_siswa.localeCompare(b.nama_siswa));
+      monitorCount.textContent = `${studentsList.length} Siswa Terdaftar`;
+
+      monitorTableBody.innerHTML = '';
+      studentsList.forEach((student, index) => {
+        const tr = document.createElement('tr');
+        if (student.isBlinking) {
+          tr.className = 'blink-violation';
+        }
+
+        // Determine Status Visuals
+        let statusBadge = '';
+        if (student.status_pengumpulan === 'normal') {
+          statusBadge = `<span class="badge badge-warning" style="background-color: #fef3c7; color: #92400e;">Sedang Mengerjakan</span>`;
+        } else if (student.status_pengumpulan === 'selesai') {
+          statusBadge = `<span class="badge badge-success" style="background-color: #d1fae5; color: #065f46;">Selesai</span>`;
+        } else if (student.status_pengumpulan === 'timer_expired') {
+          statusBadge = `<span class="badge badge-success" style="background-color: #d1fae5; color: #065f46;">Selesai (Waktu Habis)</span>`;
+        } else if (student.status_pengumpulan === 'violation_locked') {
+          statusBadge = `<span class="badge badge-danger" style="background-color: #fee2e2; color: #991b1b; font-weight: 800;">Terkunci (Melanggar)</span>`;
+        }
+
+        // Violation Warning Style
+        let violationStyle = '';
+        if (student.violation_count > 0) {
+          violationStyle = `color: var(--danger); font-weight: bold;`;
+        }
+
+        // Format time
+        const startLocal = new Date(student.waktu_mulai);
+        const formatWaktu = startLocal.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td><code style="font-size: 0.85rem; color: var(--text-muted);">${student.nisn}</code></td>
+          <td style="font-weight: 600;">${student.nama_siswa}</td>
+          <td>${statusBadge}</td>
+          <td style="${violationStyle}">${student.violation_count} / 3</td>
+          <td>${formatWaktu}</td>
+        `;
+        monitorTableBody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
     // Init load on launch
     loadActiveSession();
   </script>
 </body>
 </html>
+

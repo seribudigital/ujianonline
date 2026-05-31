@@ -22,6 +22,8 @@
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Library CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -325,6 +327,11 @@
   </div>
 
   <script>
+    // Supabase Configuration
+    const SUPABASE_URL = "https://cuqskujuehhgndnazydq.supabase.co/rest/v1/";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN1cXNrdWp1ZWhoZ25kbmF6eWRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMjk0MDQsImV4cCI6MjA5NTgwNTQwNH0.Uacs4kd4qPtO3ig1P_cKM0Rkv0UVsScoGuvx_AxKoPY";
+    const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
     // Initialize Lucide Icons
     lucide.createIcons();
 
@@ -726,7 +733,7 @@
     }
 
     // Auto-Save Multiple Choice answers
-    window.saveAnswerPG = function(qid, value, globalIndex) {
+    window.saveAnswerPG = async function(qid, value, globalIndex) {
       if (examSubmitted) return;
 
       // Update local storage answers object
@@ -753,7 +760,39 @@
       }
 
       updateAnswerProgress();
+
+      // Sync PG to Supabase
+      if (supabase && activeSession && studentSession) {
+        try {
+          await supabase
+            .from('jawaban_siswa')
+            .update({ jawaban_pg: jawabanSiswa.pg })
+            .eq('mapel_id', activeSession.id)
+            .eq('nisn', studentSession.nisn);
+        } catch (e) {
+          console.error("Gagal sinkronisasi PG ke Supabase:", e);
+        }
+      }
     };
+
+    // Debounce for Essay updates to avoid DB request spam
+    let essayDebounceTimeout = null;
+    function debounceSaveEssay() {
+      if (essayDebounceTimeout) clearTimeout(essayDebounceTimeout);
+      essayDebounceTimeout = setTimeout(async () => {
+        if (supabase && activeSession && studentSession && !examSubmitted) {
+          try {
+            await supabase
+              .from('jawaban_siswa')
+              .update({ jawaban_uraian: jawabanSiswa.uraian })
+              .eq('mapel_id', activeSession.id)
+              .eq('nisn', studentSession.nisn);
+          } catch (e) {
+            console.error("Gagal sinkronisasi Uraian ke Supabase:", e);
+          }
+        }
+      }, 1000);
+    }
 
     // Auto-Save Essay answers
     window.saveAnswerEssay = function(qid, value, globalIndex) {
@@ -779,6 +818,9 @@
       }
 
       updateAnswerProgress();
+
+      // Debounced Sync to Supabase
+      debounceSaveEssay();
     };
 
     // Update answered progress numbers
@@ -898,6 +940,18 @@
       storedViolations++;
       localStorage.setItem('smartexam_violation_count', storedViolations);
 
+      // Sync violation count to Supabase immediately
+      if (supabase && activeSession && studentSession) {
+        supabase
+          .from('jawaban_siswa')
+          .update({ violation_count: storedViolations })
+          .eq('mapel_id', activeSession.id)
+          .eq('nisn', studentSession.nisn)
+          .then(({ error }) => {
+            if (error) console.error("Gagal sinkronisasi violation ke Supabase:", error);
+          });
+      }
+
       if (storedViolations >= 3) {
         // Disqualification (Lock exam sepihak)
         submitUjian(true, 'violation_locked');
@@ -924,7 +978,7 @@
     // SUBMISSION & JSON RESULTS EXPORT
     // ==========================================
 
-    function submitUjian(isAuto = false, submitType = 'manual') {
+    async function submitUjian(isAuto = false, submitType = 'manual') {
       if (examSubmitted) return;
 
       if (!isAuto) {
@@ -978,6 +1032,25 @@
           status_pengumpulan: submitType // 'manual' | 'timer_expired' | 'violation_locked'
         }
       };
+
+      // Sync final answers and submission status to Supabase
+      const dbStatus = submitType === 'manual' ? 'selesai' : submitType; // 'selesai' | 'timer_expired' | 'violation_locked'
+      if (supabase && activeSession && studentSession) {
+        try {
+          await supabase
+            .from('jawaban_siswa')
+            .update({
+              jawaban_pg: jawabanSiswa.pg,
+              jawaban_uraian: jawabanSiswa.uraian,
+              violation_count: violationCount,
+              status_pengumpulan: dbStatus
+            })
+            .eq('mapel_id', activeSession.id)
+            .eq('nisn', studentSession.nisn);
+        } catch (e) {
+          console.error("Gagal sinkronisasi data submission ke Supabase:", e);
+        }
+      }
 
       // Trigger Automatic JSON Download
       triggerFileDownload(resultPayload);
