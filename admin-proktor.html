@@ -653,15 +653,26 @@
 
           // Map data to the excel format
           const excelData = data.map((student, idx) => {
-            // Calculate PG score
-            const score = calculateScore(student.jawaban_pg, questionsPG);
+            // Calculate PG metrics
+            let correctCount = 0;
+            let unansweredCount = 0;
+            let wrongCount = 0;
+            
+            questionsPG.forEach(q => {
+              const studentAns = student.jawaban_pg ? student.jawaban_pg[q.id] : null;
+              const correctAns = q.jawaban_benar || q.kunci;
+              
+              if (!studentAns || String(studentAns).trim() === '') {
+                unansweredCount++;
+              } else if (correctAns && String(studentAns).trim().toUpperCase() === String(correctAns).trim().toUpperCase()) {
+                correctCount++;
+              } else {
+                wrongCount++;
+              }
+            });
 
-            // Format status pengumpulan
-            let statusStr = student.status_pengumpulan || 'normal';
-            if (statusStr === 'normal') statusStr = 'Sedang Mengerjakan';
-            else if (statusStr === 'selesai') statusStr = 'Selesai';
-            else if (statusStr === 'timer_expired') statusStr = 'Selesai (Waktu Habis)';
-            else if (statusStr === 'violation_locked') statusStr = 'Terkunci (Melanggar)';
+            const totalQuestions = questionsPG.length;
+            const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
 
             // Format essay answers
             let essayText = '';
@@ -678,9 +689,12 @@
               'No': idx + 1,
               'NISN': student.nisn,
               'Nama Siswa': student.nama_siswa,
+              'Jumlah Soal': totalQuestions,
+              'Jawaban Benar': correctCount,
+              'Jawaban Salah': wrongCount,
+              'Tidak Dikerjakan': unansweredCount,
               'Nilai PG': score,
               'Total Pelanggaran': student.violation_count || 0,
-              'Status Pengumpulan': statusStr,
               'Teks Jawaban Uraian': essayText
             };
           });
@@ -697,9 +711,12 @@
             { wch: 5 },   // No
             { wch: 15 },  // NISN
             { wch: 25 },  // Nama Siswa
+            { wch: 12 },  // Jumlah Soal
+            { wch: 15 },  // Jawaban Benar
+            { wch: 15 },  // Jawaban Salah
+            { wch: 16 },  // Tidak Dikerjakan
             { wch: 10 },  // Nilai PG
             { wch: 18 },  // Total Pelanggaran
-            { wch: 22 },  // Status Pengumpulan
             { wch: 50 }   // Teks Jawaban Uraian
           ];
           worksheet['!cols'] = max_widths;
