@@ -192,9 +192,21 @@
           <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
             <i data-lucide="archive" style="color: var(--primary); width: 20px; height: 20px;"></i> Manajemen Arsip Ujian
           </h3>
-          <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">
-            Unduh cadangan data untuk akuntabilitas jangka panjang atau buka kembali file arsip secara offline.
-          </p>
+          <div style="background-color: var(--primary-light); padding: 1rem; border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-body); margin-bottom: 1.25rem; border-left: 4px solid var(--primary); line-height: 1.5; text-align: left;">
+            <div style="font-weight: 700; color: var(--primary-hover); display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.5rem; font-size: 0.85rem;">
+              <i data-lucide="lightbulb" style="width: 16px; height: 16px; flex-shrink: 0; color: var(--secondary);"></i>
+              <span>Alur Kerja Ganti Sesi Baru (Mata Pelajaran Baru)</span>
+            </div>
+            <p style="margin-bottom: 0.5rem;">
+              Jika sesi ujian mapel saat ini sudah selesai, cukup klik <strong>Tutup Sesi Ujian (Tombol Merah)</strong> agar gerbang login terkunci untuk gelombang/siswa baru.
+            </p>
+            <p style="margin-bottom: 0.5rem;">
+              Anda bisa langsung mengunggah file JSON soal baru untuk mata pelajaran berikutnya. Data ujian mapel sebelumnya aman tersimpan di cloud Supabase sebagai log history dan tidak akan bercampur. Anda tetap bisa melihat dan mencetaknya kapan saja melalui fitur manajemen arsip.
+            </p>
+            <p style="font-weight: 600; color: var(--text-dark); margin-top: 0.5rem;">
+              Catatan: Tombol Hapus Permanen dari Cloud dan Download Arsip JSON hanya digunakan di akhir semester atau akhir tahun ajaran saat database ingin dikosongkan total untuk angkatan baru.
+            </p>
+          </div>
 
           <div style="display: flex; flex-direction: column; gap: 0.75rem;">
             <!-- Download Button -->
