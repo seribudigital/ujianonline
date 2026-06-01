@@ -389,24 +389,50 @@
       }
     }
 
-    // Clear Session
+    // Clear Session with Option to Keep or Delete Student Answers
     btnClearSession.addEventListener('click', async () => {
-      if (confirm('Apakah Anda yakin ingin menghapus sesi ujian aktif ini dari cloud? Semua siswa yang sedang ujian akan kehilangan akses.')) {
-        if (supabaseClient && idUjianAktif) {
-          const { error } = await supabaseClient
-            .from('ujian_aktif')
-            .delete()
-            .eq('id', idUjianAktif);
+      const wantToDeleteSession = confirm('Apakah Anda yakin ingin MENGAKHIRI dan MENGHAPUS SESI ujian aktif ini?\n\n(Siswa yang sedang aktif ujian akan langsung terputus dari sesi ini)');
+      
+      if (wantToDeleteSession) {
+        const wantToDeleteAnswers = confirm('PENTING:\nApakah Anda juga ingin MENGHAPUS SEMUA DATA JAWABAN SISWA dari database Supabase (Reset Total)?\n\n- Klik "OK" untuk MENGHAPUS SEMUA DATA JAWABAN SISWA.\n- Klik "Batal" jika Anda ingin TETAP MENYIMPAN hasil pengerjaan siswa (Direkomendasikan agar nilai/arsip tetap bisa diekspor ke Excel).');
 
-          if (error) {
-            showAlert('Gagal menghapus sesi ujian dari database cloud: ' + error.message, 'danger');
+        if (supabaseClient && idUjianAktif) {
+          try {
+            // Delete active session config
+            const { error: sessionError } = await supabaseClient
+              .from('ujian_aktif')
+              .delete()
+              .eq('id', idUjianAktif);
+
+            if (sessionError) {
+              showAlert('Gagal menghapus sesi ujian dari database cloud: ' + sessionError.message, 'danger');
+              return;
+            }
+
+            // If proctor wanted to delete student answers too
+            if (wantToDeleteAnswers) {
+              const { error: answersError } = await supabaseClient
+                .from('jawaban_siswa')
+                .delete()
+                .eq('mapel_id', idUjianAktif);
+
+              if (answersError) {
+                showAlert('Sesi ujian dihapus, namun gagal membersihkan jawaban siswa: ' + answersError.message, 'danger');
+                return;
+              }
+              showAlert('Sesi ujian berhasil ditutup dan seluruh data jawaban siswa telah dibersihkan secara permanen (Reset Total).', 'success');
+            } else {
+              showAlert('Sesi ujian berhasil ditutup. Seluruh data pengerjaan siswa tetap aman disimpan di database cloud (dapat diekspor nanti).', 'success');
+            }
+          } catch (err) {
+            showAlert('Koneksi database cloud error: ' + err.message, 'danger');
             return;
           }
         }
+        
         localStorage.removeItem('smartexam_active_session');
         idUjianAktif = null;
         loadActiveSession();
-        showAlert('Sesi ujian telah berhasil dihapus dari cloud.', 'info');
       }
     });
 
