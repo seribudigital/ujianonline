@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartExam-Online | Proktor Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  
+  <!-- MathJax Configuration and Script CDN for LaTeX rendering -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <!-- Lucide Icons for premium feel -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Supabase JS Library CDN -->
@@ -888,6 +903,11 @@
       // Show print preview modal
       document.getElementById('print-modal-overlay').style.display = 'flex';
       lucide.createIcons();
+
+      // Trigger MathJax LaTeX rendering
+      if (window.MathJax && window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise().catch((err) => console.error("MathJax error:", err));
+      }
     };
 
     window.updateCalculatedScores = function() {
@@ -1138,9 +1158,25 @@
         document.getElementById('print-report-container').innerHTML = rapotHtml;
         document.getElementById('print-modal-overlay').style.display = 'none';
 
-        setTimeout(() => {
-          window.print();
-        }, 250);
+        // Wait for MathJax to compile formulas in the printed document before printing
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise()
+            .then(() => {
+              setTimeout(() => {
+                window.print();
+              }, 250);
+            })
+            .catch((err) => {
+              console.error("MathJax print typesetting error:", err);
+              setTimeout(() => {
+                window.print();
+              }, 250);
+            });
+        } else {
+          setTimeout(() => {
+            window.print();
+          }, 250);
+        }
       });
     }
 
