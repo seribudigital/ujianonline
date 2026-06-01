@@ -994,3 +994,179 @@ a:hover {
   animation: blink-red 1s ease-in-out infinite;
 }
 
+/* ==========================================
+   PRINT RAPOT STYLES & OPTIMIZATION
+   ========================================== */
+#print-report-container {
+  display: none;
+}
+
+@media print {
+  /* Hide standard page elements */
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
+  }
+  
+  .navbar, 
+  .container, 
+  .warning-modal-overlay, 
+  #alert-container {
+    display: none !important;
+  }
+
+  #print-report-container {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Force page breaks if necessary */
+  .print-page-break {
+    page-break-before: always;
+  }
+}
+
+/* Report UI styling for print and screen preview */
+.rapot-doc {
+  background-color: #ffffff;
+  color: #000000;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 10px;
+  line-height: 1.5;
+}
+
+.rapot-kop {
+  border-bottom: 3px double #000000;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.rapot-kop-title {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+  color: #000000;
+}
+
+.rapot-identitas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #000000;
+  padding-bottom: 1rem;
+  color: #000000;
+}
+
+.rapot-row {
+  display: flex;
+  margin-bottom: 0.4rem;
+}
+
+.rapot-label {
+  width: 140px;
+  font-weight: bold;
+}
+
+.rapot-titikdua {
+  width: 15px;
+}
+
+.rapot-value {
+  font-weight: normal;
+}
+
+.rapot-summary-box {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.rapot-summary-card {
+  border: 1px solid #000000;
+  padding: 0.75rem;
+  text-align: center;
+  border-radius: 4px;
+  color: #000000;
+}
+
+.rapot-summary-label {
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #555555;
+  margin-bottom: 0.25rem;
+}
+
+.rapot-summary-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.rapot-section-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  border-bottom: 2px solid #000000;
+  padding-bottom: 0.25rem;
+  margin: 1.5rem 0 1rem;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.rapot-soal-item {
+  border-bottom: 1px dashed #cccccc;
+  padding: 0.75rem 0;
+  color: #000000;
+}
+
+.rapot-soal-item:last-child {
+  border-bottom: none;
+}
+
+.rapot-soal-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
+  color: #000000;
+}
+
+.rapot-badge-correct {
+  color: #065f46;
+  font-weight: 800;
+}
+
+.rapot-badge-incorrect {
+  color: #991b1b;
+  font-weight: 800;
+}
+
+.rapot-soal-text {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  color: #000000;
+}
+
+.rapot-soal-ans {
+  font-size: 0.85rem;
+  background-color: #f5f5f5;
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+  border-left: 3px solid #333333;
+  color: #000000;
+}
+

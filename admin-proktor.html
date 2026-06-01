@@ -175,11 +175,12 @@
               <th>Status</th>
               <th>Pelanggaran</th>
               <th>Waktu Mulai</th>
+              <th style="width: 140px;">Laporan</th>
             </tr>
           </thead>
           <tbody id="monitor-table-body">
             <tr>
-              <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
                 <i data-lucide="users" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted);"></i>
                 Belum ada siswa yang login untuk mata pelajaran aktif ini.
               </td>
@@ -194,6 +195,32 @@
       <p>&copy; 2026 SmartExam-Online (Platform Ujian Siswa). All rights reserved.</p>
     </footer>
   </div>
+
+  <!-- Modal Preview & Penilaian Rapot -->
+  <div class="warning-modal-overlay" id="print-modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 2000; overflow-y: auto;">
+    <div class="warning-modal-card" style="max-width: 800px; width: 95%; max-height: 90vh; overflow-y: auto; text-align: left; padding: 2rem; border-color: var(--primary);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+        <h2 style="font-family: var(--font-display); color: var(--text-dark); margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.35rem;">
+          <i data-lucide="printer" style="color: var(--primary);"></i> Cetak Rapot Hasil Ujian
+        </h2>
+        <button id="btn-close-print-modal" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.75rem; font-weight: bold; line-height: 1;">&times;</button>
+      </div>
+
+      <div id="print-modal-content">
+        <!-- Dynamically populated review content -->
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" id="btn-cancel-print">Batal</button>
+        <button class="btn btn-primary" id="btn-confirm-print" style="background: linear-gradient(135deg, var(--primary), var(--primary-hover)); display: flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="printer" style="width: 16px; height: 16px;"></i> Cetak Laporan (PDF)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden container for printing -->
+  <div id="print-report-container"></div>
 
   <script>
     // Supabase Configuration
@@ -333,7 +360,7 @@
 
       monitorTableBody.innerHTML = `
         <tr>
-          <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+          <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
             <i data-lucide="users" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted);"></i>
             Belum ada ujian aktif. Unggah berkas soal untuk mengaktifkan pemantauan.
           </td>
@@ -538,7 +565,7 @@
       if (studentsList.length === 0) {
         monitorTableBody.innerHTML = `
           <tr>
-            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
               <i data-lucide="users" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted);"></i>
               Belum ada siswa yang login untuk mata pelajaran aktif ini.
             </td>
@@ -582,6 +609,18 @@
         const startLocal = new Date(student.waktu_mulai);
         const formatWaktu = startLocal.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
 
+        // Set up the print report button
+        let actionBtn = '';
+        if (student.status_pengumpulan !== 'normal') {
+          actionBtn = `
+            <button class="btn" onclick="openPrintModal('${student.nisn}')" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem; background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-light); border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; transition: all 0.2s ease;">
+              <i data-lucide="printer" style="width: 12px; height: 12px;"></i> Cetak Rapot
+            </button>
+          `;
+        } else {
+          actionBtn = `<span style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">Sedang Mengerjakan</span>`;
+        }
+
         tr.innerHTML = `
           <td>${index + 1}</td>
           <td><code style="font-size: 0.85rem; color: var(--text-muted);">${student.nisn}</code></td>
@@ -589,6 +628,7 @@
           <td>${statusBadge}</td>
           <td style="${violationStyle}">${student.violation_count} / 3</td>
           <td>${formatWaktu}</td>
+          <td>${actionBtn}</td>
         `;
         monitorTableBody.appendChild(tr);
       });
@@ -739,6 +779,370 @@
           showAlert('Terjadi kesalahan saat ekspor Excel: ' + err.message, 'danger');
           console.error(err);
         }
+      });
+    }
+
+    }
+
+    // Global variable to store currently loading student for print
+    let currentStudentForPrint = null;
+
+    window.openPrintModal = function(nisn) {
+      const student = studentsMap[nisn];
+      if (!student) return;
+
+      currentStudentForPrint = student;
+
+      const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+      if (!activeSessionRaw) {
+        showAlert("Tidak ada sesi ujian aktif di lokal.", "danger");
+        return;
+      }
+
+      const session = JSON.parse(activeSessionRaw);
+      const meta = session.metadata || session;
+      const questionsPG = session.soal_pg || [];
+      const questionsUraian = session.soal_uraian || [];
+
+      // Calculate PG score and metrics
+      let correctCount = 0;
+      let unansweredCount = 0;
+      let wrongCount = 0;
+      
+      questionsPG.forEach(q => {
+        const studentAns = student.jawaban_pg ? student.jawaban_pg[q.id] : null;
+        const correctAns = q.jawaban_benar || q.kunci;
+        
+        if (!studentAns || String(studentAns).trim() === '') {
+          unansweredCount++;
+        } else if (correctAns && String(studentAns).trim().toUpperCase() === String(correctAns).trim().toUpperCase()) {
+          correctCount++;
+        } else {
+          wrongCount++;
+        }
+      });
+
+      const totalPG = questionsPG.length;
+      const pgScore = totalPG > 0 ? Math.round((correctCount / totalPG) * 100) : 0;
+
+      // Populate Modal Content
+      let essayListHtml = '';
+      if (questionsUraian && questionsUraian.length > 0) {
+        essayListHtml = `<h4 style="margin: 1.5rem 0 0.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-family: var(--font-display); color: var(--text-dark);">Penilaian Jawaban Uraian</h4>`;
+        questionsUraian.forEach((q, idx) => {
+          const studentAns = student.jawaban_uraian ? student.jawaban_uraian[q.id] : '';
+          const correctAns = q.jawaban_benar || q.kunci || '-';
+          
+          essayListHtml += `
+            <div style="background-color: var(--bg-main); padding: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 1rem;">
+              <div style="font-weight: 700; margin-bottom: 0.25rem; color: var(--text-dark);">Soal Uraian ${idx + 1}</div>
+              <div style="margin-bottom: 0.5rem; color: var(--text-dark); font-size: 0.9rem;">${q.pertanyaan}</div>
+              <div style="margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+                <strong>Kunci Jawaban Guru:</strong> <span style="color: var(--success);">${correctAns}</span>
+              </div>
+              <div style="margin-bottom: 0.75rem; padding: 0.75rem; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.9rem; border-left: 3px solid var(--secondary); color: var(--text-body);">
+                <strong>Jawaban Siswa:</strong> ${studentAns ? studentAns : '<span style="color: var(--danger); font-style: italic;">Tidak Menjawab</span>'}
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-dark);">Skor Uraian (0-100):</label>
+                <input type="number" class="essay-score-input" data-qid="${q.id}" min="0" max="100" value="100" style="width: 80px; padding: 0.35rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-weight: 700;" oninput="updateCalculatedScores()">
+              </div>
+            </div>
+          `;
+        });
+      } else {
+        essayListHtml = `<p style="color: var(--text-muted); font-style: italic;">Ujian ini tidak memiliki soal uraian.</p>`;
+      }
+
+      const contentDiv = document.getElementById('print-modal-content');
+      contentDiv.innerHTML = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-body);">
+          <div>
+            <div style="margin-bottom: 0.5rem;"><strong>Nama Siswa:</strong> ${student.nama_siswa}</div>
+            <div style="margin-bottom: 0.5rem;"><strong>NISN:</strong> ${student.nisn}</div>
+            <div style="margin-bottom: 0.5rem;"><strong>Mata Pelajaran:</strong> ${meta.mapel_nama}</div>
+          </div>
+          <div>
+            <div style="margin-bottom: 0.5rem;"><strong>Kelas:</strong> ${meta.kelas}</div>
+            <div style="margin-bottom: 0.5rem;"><strong>Paket Soal:</strong> ${meta.paket}</div>
+            <div style="margin-bottom: 0.5rem;"><strong>Catatan Pelanggaran:</strong> <span style="color: ${student.violation_count > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight: 700;">${student.violation_count} kali</span></div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; text-align: center;">
+          <div style="border: 1px solid var(--border-color); padding: 0.75rem; border-radius: var(--radius-md); background-color: var(--bg-main);">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nilai PG</div>
+            <div id="modal-score-pg" style="font-size: 1.75rem; font-weight: 800; color: var(--primary);">${pgScore}</div>
+          </div>
+          <div style="border: 1px solid var(--border-color); padding: 0.75rem; border-radius: var(--radius-md); background-color: var(--bg-main);">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Nilai Uraian</div>
+            <div id="modal-score-essay" style="font-size: 1.75rem; font-weight: 800; color: var(--secondary);">${questionsUraian.length > 0 ? '100' : '-'}</div>
+          </div>
+          <div style="border: 1px solid var(--border-color); padding: 0.75rem; border-radius: var(--radius-md); background-color: var(--bg-main); border: 2px solid var(--success);">
+            <div style="font-size: 0.75rem; font-weight: 700; color: var(--success); text-transform: uppercase; font-weight: 800;">Nilai Akhir</div>
+            <div id="modal-score-final" style="font-size: 1.75rem; font-weight: 800; color: var(--success);">${questionsUraian.length > 0 ? Math.round((pgScore + 100) / 2) : pgScore}</div>
+          </div>
+        </div>
+
+        ${essayListHtml}
+      `;
+
+      // Show print preview modal
+      document.getElementById('print-modal-overlay').style.display = 'flex';
+      lucide.createIcons();
+    };
+
+    window.updateCalculatedScores = function() {
+      const inputs = document.querySelectorAll('.essay-score-input');
+      let totalScore = 0;
+      let count = 0;
+      inputs.forEach(input => {
+        let val = parseFloat(input.value);
+        if (isNaN(val)) val = 0;
+        if (val < 0) val = 0;
+        if (val > 100) val = 100;
+        input.value = val;
+        totalScore += val;
+        count++;
+      });
+      
+      const pgScore = parseInt(document.getElementById('modal-score-pg').textContent) || 0;
+      
+      if (count > 0) {
+        const avgEssayScore = Math.round(totalScore / count);
+        document.getElementById('modal-score-essay').textContent = avgEssayScore;
+        document.getElementById('modal-score-final').textContent = Math.round((pgScore + avgEssayScore) / 2);
+      } else {
+        document.getElementById('modal-score-essay').textContent = '-';
+        document.getElementById('modal-score-final').textContent = pgScore;
+      }
+    };
+
+    // Close Modal event listeners
+    const closePrintModalBtn = document.getElementById('btn-close-print-modal');
+    if (closePrintModalBtn) {
+      closePrintModalBtn.addEventListener('click', () => {
+        document.getElementById('print-modal-overlay').style.display = 'none';
+      });
+    }
+
+    const cancelPrintBtn = document.getElementById('btn-cancel-print');
+    if (cancelPrintBtn) {
+      cancelPrintBtn.addEventListener('click', () => {
+        document.getElementById('print-modal-overlay').style.display = 'none';
+      });
+    }
+
+    // Print processing
+    const confirmPrintBtn = document.getElementById('btn-confirm-print');
+    if (confirmPrintBtn) {
+      confirmPrintBtn.addEventListener('click', () => {
+        if (!currentStudentForPrint) return;
+
+        const student = currentStudentForPrint;
+        const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+        const session = JSON.parse(activeSessionRaw);
+        const meta = session.metadata || session;
+        const questionsPG = session.soal_pg || [];
+        const questionsUraian = session.soal_uraian || [];
+
+        // Calculate PG score and metrics
+        let correctCount = 0;
+        let unansweredCount = 0;
+        let wrongCount = 0;
+        
+        let pgDetailsHtml = '';
+        questionsPG.forEach((q, idx) => {
+          const studentAns = student.jawaban_pg ? student.jawaban_pg[q.id] : null;
+          const correctAns = q.jawaban_benar || q.kunci;
+          
+          let isCorrect = false;
+          let statusBadge = '';
+          let studentAnsText = studentAns ? `${studentAns}. ${q.pilihan[studentAns] || ''}` : '(Tidak Dijawab)';
+          let correctAnsText = correctAns ? `${correctAns}. ${q.pilihan[correctAns] || ''}` : '-';
+
+          if (!studentAns || String(studentAns).trim() === '') {
+            unansweredCount++;
+            statusBadge = '<span class="rapot-badge-incorrect">[ Kosong ]</span>';
+          } else if (correctAns && String(studentAns).trim().toUpperCase() === String(correctAns).trim().toUpperCase()) {
+            correctCount++;
+            isCorrect = true;
+            statusBadge = '<span class="rapot-badge-correct">[ Benar ]</span>';
+          } else {
+            wrongCount++;
+            statusBadge = '<span class="rapot-badge-incorrect">[ Salah ]</span>';
+          }
+
+          pgDetailsHtml += `
+            <div class="rapot-soal-item">
+              <div class="rapot-soal-header">
+                <span>Soal PG ${idx + 1}</span>
+                ${statusBadge}
+              </div>
+              <div class="rapot-soal-text">${q.pertanyaan}</div>
+              <div class="rapot-soal-ans">
+                <strong>Jawaban Siswa:</strong> ${studentAnsText} <br>
+                <strong>Kunci Jawaban:</strong> ${correctAnsText}
+              </div>
+            </div>
+          `;
+        });
+
+        const totalPG = questionsPG.length;
+        const pgScore = totalPG > 0 ? Math.round((correctCount / totalPG) * 100) : 0;
+
+        // Calculate Essay score and compile details
+        let essayDetailsHtml = '';
+        let totalEssayScore = 0;
+        let essayCount = 0;
+
+        const inputs = document.querySelectorAll('.essay-score-input');
+        inputs.forEach((input, idx) => {
+          const qid = input.getAttribute('data-qid');
+          const score = parseFloat(input.value) || 0;
+          
+          const q = questionsUraian.find(item => item.id == qid);
+          if (q) {
+            const studentAns = student.jawaban_uraian ? student.jawaban_uraian[q.id] : '';
+            const correctAns = q.jawaban_benar || q.kunci || '-';
+
+            totalEssayScore += score;
+            essayCount++;
+
+            essayDetailsHtml += `
+              <div class="rapot-soal-item">
+                <div class="rapot-soal-header">
+                  <span>Soal Uraian ${idx + 1}</span>
+                  <span>Skor: <strong>${score} / 100</strong></span>
+                </div>
+                <div class="rapot-soal-text">${q.pertanyaan}</div>
+                <div class="rapot-soal-ans" style="margin-bottom: 0.5rem;">
+                  <strong>Kunci Jawaban:</strong> ${correctAns}
+                </div>
+                <div class="rapot-soal-ans" style="background-color: #f9f9f9; border-left: 3px solid var(--secondary); padding: 0.5rem 0.75rem; border-radius: 4px;">
+                  <strong>Jawaban Siswa:</strong> ${studentAns ? studentAns : '(Tidak Menjawab)'}
+                </div>
+              </div>
+            `;
+          }
+        });
+
+        const avgEssayScore = essayCount > 0 ? Math.round(totalEssayScore / essayCount) : 0;
+        const finalScore = essayCount > 0 ? Math.round((pgScore + avgEssayScore) / 2) : pgScore;
+
+        const reportDate = new Date().toLocaleDateString('id-ID', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
+
+        const rapotHtml = `
+          <div class="rapot-doc">
+            <div class="rapot-kop">
+              <div style="font-weight: 800; font-size: 1rem; text-transform: uppercase; text-align: center;">
+                Kementerian Agama Republik Indonesia
+              </div>
+              <div style="font-weight: 900; font-size: 1.3rem; text-transform: uppercase; text-align: center; margin: 0.15rem 0 0.3rem;">
+                ${meta.madrasah || 'MADRASAH ALIYAH'}
+              </div>
+              <div style="font-size: 0.8rem; text-align: center; color: #333333;">
+                Laporan Penilaian Hasil Ujian Online (Computer Based Test)
+              </div>
+            </div>
+
+            <div class="rapot-kop-title">
+              Laporan Hasil Evaluasi Belajar Siswa
+            </div>
+
+            <div class="rapot-identitas">
+              <div>
+                <div class="rapot-row">
+                  <span class="rapot-label">Nama Siswa</span>
+                  <span class="rapot-titikdua">:</span>
+                  <span class="rapot-value" style="font-weight: bold; text-transform: uppercase;">${student.nama_siswa}</span>
+                </div>
+                <div class="rapot-row">
+                  <span class="rapot-label">NISN Siswa</span>
+                  <span class="rapot-titikdua">:</span>
+                  <span class="rapot-value">${student.nisn}</span>
+                </div>
+                <div class="rapot-row">
+                  <span class="rapot-label">Kelas / Paket</span>
+                  <span class="rapot-titikdua">:</span>
+                  <span class="rapot-value">${meta.kelas} / Paket ${meta.paket}</span>
+                </div>
+              </div>
+              <div>
+                <div class="rapot-row">
+                  <span class="rapot-label">Mata Pelajaran</span>
+                  <span class="rapot-titikdua">:</span>
+                  <span class="rapot-value">${meta.mapel_nama}</span>
+                </div>
+                <div class="rapot-row">
+                  <span class="rapot-label">Guru Pengampu</span>
+                  <span class="rapot-titikdua">:</span>
+                  <span class="rapot-value">${meta.guru}</span>
+                </div>
+                <div class="rapot-row">
+                  <span class="rapot-label">Tanggal Cetak</span>
+                  <span class="rapot-titikdua">:</span>
+                  <span class="rapot-value">${reportDate}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rapot-summary-box">
+              <div class="rapot-summary-card">
+                <div class="rapot-summary-label">Nilai PG</div>
+                <div class="rapot-summary-val">${pgScore}</div>
+              </div>
+              <div class="rapot-summary-card">
+                <div class="rapot-summary-label">Nilai Uraian</div>
+                <div class="rapot-summary-val">${essayCount > 0 ? avgEssayScore : '-'}</div>
+              </div>
+              <div class="rapot-summary-card" style="border: 2px solid #000000; background-color: #f5f5f5;">
+                <div class="rapot-summary-label" style="color: #000000; font-weight: 800;">Nilai Akhir</div>
+                <div class="rapot-summary-val" style="font-weight: 900;">${finalScore}</div>
+              </div>
+              <div class="rapot-summary-card">
+                <div class="rapot-summary-label">Total Pelanggaran</div>
+                <div class="rapot-summary-val" style="color: ${student.violation_count > 0 ? '#991b1b' : 'inherit'}; font-weight: bold;">${student.violation_count} / 3</div>
+              </div>
+            </div>
+
+            <div class="rapot-section-title">Detail Soal Pilihan Ganda (PG)</div>
+            <div>
+              ${pgDetailsHtml}
+            </div>
+
+            ${essayCount > 0 ? `
+              <div class="print-page-break"></div>
+              <div class="rapot-section-title" style="margin-top: 2rem;">Detail Soal Uraian / Esai</div>
+              <div>
+                ${essayDetailsHtml}
+              </div>
+            ` : ''}
+
+            <div style="margin-top: 4rem; display: flex; justify-content: space-between; font-size: 0.9rem; page-break-inside: avoid;">
+              <div style="text-align: center; width: 220px;">
+                Mengetahui,<br>Orang Tua / Wali Siswa
+                <div style="margin-top: 4rem; border-bottom: 1px solid #000000; font-weight: bold; height: 20px;"></div>
+              </div>
+              <div style="text-align: center; width: 220px;">
+                Kota Semarang, ${reportDate}<br>Guru Pengampu,
+                <div style="margin-top: 4rem; border-bottom: 1px solid #000000; font-weight: bold;">${meta.guru}</div>
+                NIP. ......................................
+              </div>
+            </div>
+          </div>
+        `;
+
+        document.getElementById('print-report-container').innerHTML = rapotHtml;
+        document.getElementById('print-modal-overlay').style.display = 'none';
+
+        setTimeout(() => {
+          window.print();
+        }, 250);
       });
     }
 
