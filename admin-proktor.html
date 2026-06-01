@@ -302,12 +302,25 @@
       lucide.createIcons();
     }
 
+    function deserializeSession(session) {
+      if (!session) return null;
+      const meta = session.metadata ? session.metadata : session;
+      if (meta && meta.tahun && typeof meta.tahun === 'string' && meta.tahun.includes('|')) {
+        const parts = meta.tahun.split('|');
+        meta.tahun = parts[0] || '';
+        meta.semester = parts[1] || '-';
+        meta.guru = parts[2] || '-';
+      }
+      return session;
+    }
+
     // Load active session from Supabase (or localStorage fallback)
     async function loadActiveSession() {
       const activeSessionRaw = localStorage.getItem('smartexam_active_session');
       if (activeSessionRaw) {
         try {
-          const session = JSON.parse(activeSessionRaw);
+          let session = JSON.parse(activeSessionRaw);
+          session = deserializeSession(session);
           const meta = session.metadata ? session.metadata : session;
           idUjianAktif = session.id;
 
@@ -329,6 +342,11 @@
             } else {
               // Ensure local storage is updated with DB values
               localStorage.setItem('smartexam_active_session', JSON.stringify(data));
+              let dbSession = deserializeSession(data);
+              const dbMeta = dbSession.metadata ? dbSession.metadata : dbSession;
+              meta.tahun = dbMeta.tahun;
+              meta.semester = dbMeta.semester;
+              meta.guru = dbMeta.guru;
             }
           }
           
@@ -514,7 +532,7 @@
                 madrasah: meta.madrasah,
                 mapel_nama: meta.mapel_nama,
                 kelas: meta.kelas,
-                tahun: meta.tahun,
+                tahun: `${meta.tahun || ''}|${meta.semester || ''}|${meta.guru || ''}`,
                 paket: meta.paket,
                 waktu_menit: parseInt(meta.waktu_menit) || 90,
                 soal_pg: rawData.soal_pg,
