@@ -1306,6 +1306,23 @@
         document.getElementById('print-report-container').innerHTML = rapotHtml;
         document.getElementById('print-modal-overlay').style.display = 'none';
 
+        // Set dynamic document title for print filename
+        const originalTitle = document.title;
+        const cleanForFilename = (str) => {
+          return (str || '').toLowerCase()
+            .replace(/[^a-z0-9]/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '');
+        };
+        const printTitle = `${cleanForFilename(meta.kelas)}-${cleanForFilename(student.nama_siswa)}-${cleanForFilename(meta.mapel_nama)}`;
+        document.title = printTitle;
+
+        // Restore original title after printing
+        window.addEventListener('afterprint', function restoreTitle() {
+          document.title = originalTitle;
+          window.removeEventListener('afterprint', restoreTitle);
+        });
+
         // Wait for MathJax to compile formulas in the printed document before printing
         if (window.MathJax && window.MathJax.typesetPromise) {
           window.MathJax.typesetPromise()
