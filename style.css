@@ -1031,6 +1031,17 @@ a:hover {
   .print-page-break {
     page-break-before: always;
   }
+
+  .rapot-logo-container {
+    width: 75px !important;
+    height: 75px !important;
+  }
+
+  .rapot-logo-img {
+    max-width: 75px !important;
+    max-height: 75px !important;
+    object-fit: contain !important;
+  }
 }
 
 /* Report UI styling for print and screen preview */
@@ -1047,6 +1058,23 @@ a:hover {
   border-bottom: 3px double #000000;
   padding-bottom: 0.75rem;
   margin-bottom: 1.5rem;
+}
+
+.rapot-logo-container {
+  width: 75px;
+  height: 75px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.rapot-logo-img {
+  max-width: 75px;
+  max-height: 75px;
+  object-fit: contain;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 .rapot-kop-title {

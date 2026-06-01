@@ -164,6 +164,64 @@
             </div>
           </div>
         </div>
+
+        <!-- Global Report Print Settings Card -->
+        <div class="card" style="margin-top: 1.5rem;">
+          <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+            <i data-lucide="settings" style="color: var(--primary); width: 20px; height: 20px;"></i> Pengaturan Cetak Rapot
+          </h3>
+          <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">
+            Atur nama kota penandatanganan dan logo instansi (MTs & MA) secara global untuk laporan rapot.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+            <!-- Kota Input -->
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 0.35rem;">Kota Penandatanganan</label>
+              <input type="text" id="global-city-input" style="width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 0.85rem;" placeholder="Contoh: Semarang atau Kota Semarang">
+            </div>
+
+            <!-- MTs Logo Upload -->
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 0.35rem;">Logo Madrasah Tsanawiyah (MTs)</label>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div id="logo-mts-preview-container" style="width: 50px; height: 50px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background-color: var(--bg-main); overflow: hidden; flex-shrink: 0;">
+                  <!-- Silhouette placeholder rendered by JS -->
+                </div>
+                <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 0.25rem;">
+                  <input type="file" id="logo-mts-file" accept="image/*" style="display: none;">
+                  <div style="display: flex; gap: 0.35rem;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('logo-mts-file').click()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem; background-color: #ffffff; border: 1px solid var(--border-color);">
+                      <i data-lucide="upload" style="width: 12px; height: 12px;"></i> Unggah
+                    </button>
+                    <button class="btn btn-danger" id="btn-remove-logo-mts" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; display: none;">Hapus</button>
+                  </div>
+                  <span style="font-size: 0.65rem; color: var(--text-muted);">Maks. 1MB, format gambar</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- MA Logo Upload -->
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 0.35rem;">Logo Madrasah Aliyah (MA)</label>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div id="logo-ma-preview-container" style="width: 50px; height: 50px; border: 1px dashed var(--border-color); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background-color: var(--bg-main); overflow: hidden; flex-shrink: 0;">
+                  <!-- Silhouette placeholder rendered by JS -->
+                </div>
+                <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 0.25rem;">
+                  <input type="file" id="logo-ma-file" accept="image/*" style="display: none;">
+                  <div style="display: flex; gap: 0.35rem;">
+                    <button class="btn btn-secondary" onclick="document.getElementById('logo-ma-file').click()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem; background-color: #ffffff; border: 1px solid var(--border-color);">
+                      <i data-lucide="upload" style="width: 12px; height: 12px;"></i> Unggah
+                    </button>
+                    <button class="btn btn-danger" id="btn-remove-logo-ma" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; display: none;">Hapus</button>
+                  </div>
+                  <span style="font-size: 0.65rem; color: var(--text-muted);">Maks. 1MB, format gambar</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1098,18 +1156,64 @@
           year: 'numeric'
         });
 
+        // Load configured city name and logos
+        const reportCity = localStorage.getItem('smartexam_report_city') || 'Kota Semarang';
+        const mapelLower = (meta.mapel_nama || '').toLowerCase();
+        const kelasLower = (meta.kelas || '').toLowerCase();
+        const madrasahLower = (meta.madrasah || '').toLowerCase();
+
+        let selectedLogo = null;
+        let isMts = mapelLower.includes('mts') || 
+                    /\b(7|8|9|vii|viii|ix)\b/.test(kelasLower) || 
+                    madrasahLower.includes('mts') || 
+                    madrasahLower.includes('tsanawiyah');
+                    
+        let isMa = mapelLower.includes('ma') || 
+                   mapelLower.includes('aliyah') || 
+                   /\b(10|11|12|x|xi|xii)\b/.test(kelasLower) || 
+                   madrasahLower.includes('ma') || 
+                   madrasahLower.includes('aliyah');
+
+        if (isMts && !isMa) {
+          selectedLogo = localStorage.getItem('smartexam_logo_mts');
+        } else if (isMa && !isMts) {
+          selectedLogo = localStorage.getItem('smartexam_logo_ma');
+        } else {
+          // Ambiguous or neither detected: use MA if exists, else MTs
+          selectedLogo = localStorage.getItem('smartexam_logo_ma') || localStorage.getItem('smartexam_logo_mts');
+        }
+
+        let logoHtml = '';
+        if (selectedLogo) {
+          logoHtml = `<img class="rapot-logo-img" src="${selectedLogo}" alt="Logo Madrasah">`;
+        } else {
+          // Default Educational Silhouette SVG
+          logoHtml = `
+            <svg viewBox="0 0 24 24" class="rapot-logo-img" stroke="#000000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.8; width: 60px; height: 60px;">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+              <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+            </svg>
+          `;
+        }
+
         const rapotHtml = `
           <div class="rapot-doc">
-            <div class="rapot-kop">
-              <div style="font-weight: 800; font-size: 1rem; text-transform: uppercase; text-align: center;">
-                Kementerian Agama Republik Indonesia
+            <div class="rapot-kop" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px double #000000; padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+              <div class="rapot-logo-container">
+                ${logoHtml}
               </div>
-              <div style="font-weight: 900; font-size: 1.3rem; text-transform: uppercase; text-align: center; margin: 0.15rem 0 0.3rem;">
-                ${meta.madrasah || 'MADRASAH ALIYAH'}
+              <div style="flex-grow: 1; text-align: center; padding: 0 1rem;">
+                <div style="font-weight: 800; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                  Kementerian Agama Republik Indonesia
+                </div>
+                <div style="font-weight: 900; font-size: 1.35rem; text-transform: uppercase; margin: 0.2rem 0; letter-spacing: 0.5px;">
+                  ${meta.madrasah || 'MADRASAH ALIYAH'}
+                </div>
+                <div style="font-size: 0.8rem; color: #333333; font-weight: 500;">
+                  Laporan Hasil Penilaian Akhir Semester Online (CBT)
+                </div>
               </div>
-              <div style="font-size: 0.8rem; text-align: center; color: #333333;">
-                Laporan Penilaian Hasil Ujian Online (Computer Based Test)
-              </div>
+              <div style="width: 75px; flex-shrink: 0;"></div> <!-- Dummy offset to balance logo for centering -->
             </div>
 
             <div class="rapot-kop-title">
@@ -1191,7 +1295,7 @@
                 <div style="margin-top: 4rem; border-bottom: 1px solid #000000; font-weight: bold; height: 20px;"></div>
               </div>
               <div style="text-align: center; width: 220px;">
-                Kota Semarang, ${reportDate}<br>Guru Pengampu,
+                ${reportCity}, ${reportDate}<br>Guru Pengampu,
                 <div style="margin-top: 4rem; border-bottom: 1px solid #000000; font-weight: bold;">${meta.guru}</div>
                 NIP. ......................................
               </div>
@@ -1224,7 +1328,113 @@
       });
     }
 
+    // Initialize Global Print Settings (City name and Logo Uploads)
+    function initPrintSettings() {
+      const cityInput = document.getElementById('global-city-input');
+      const mtsFileInput = document.getElementById('logo-mts-file');
+      const maFileInput = document.getElementById('logo-ma-file');
+      const removeMtsBtn = document.getElementById('btn-remove-logo-mts');
+      const removeMaBtn = document.getElementById('btn-remove-logo-ma');
+
+      // 1. Load city name
+      const savedCity = localStorage.getItem('smartexam_report_city') || 'Kota Semarang';
+      if (cityInput) {
+        cityInput.value = savedCity;
+        cityInput.addEventListener('input', () => {
+          localStorage.setItem('smartexam_report_city', cityInput.value.trim());
+        });
+      }
+
+      // Helper to update logo preview
+      const updateLogoPreview = (type, base64Data) => {
+        const previewContainer = document.getElementById(`logo-${type}-preview-container`);
+        const removeBtn = document.getElementById(`btn-remove-logo-${type}`);
+        
+        if (!previewContainer) return;
+        
+        if (base64Data) {
+          previewContainer.innerHTML = `<img src="${base64Data}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo ${type.toUpperCase()}">`;
+          if (removeBtn) removeBtn.style.display = 'block';
+        } else {
+          // Silhouette placeholder SVG
+          previewContainer.innerHTML = `
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="var(--text-muted)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5;">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+              <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
+            </svg>
+          `;
+          if (removeBtn) removeBtn.style.display = 'none';
+        }
+      };
+
+      // 2. Load logos from localStorage
+      const savedMtsLogo = localStorage.getItem('smartexam_logo_mts');
+      const savedMaLogo = localStorage.getItem('smartexam_logo_ma');
+      
+      updateLogoPreview('mts', savedMtsLogo);
+      updateLogoPreview('ma', savedMaLogo);
+
+      // Handle File Uploads
+      const handleLogoUpload = (fileInput, type) => {
+        fileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          // Check file type
+          if (!file.type.startsWith('image/')) {
+            showAlert("File harus berupa gambar!", "danger");
+            fileInput.value = '';
+            return;
+          }
+
+          // Check size (Max 1MB)
+          if (file.size > 1 * 1024 * 1024) {
+            showAlert("Ukuran gambar maksimal 1MB!", "danger");
+            fileInput.value = '';
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64Data = event.target.result;
+            try {
+              localStorage.setItem(`smartexam_logo_${type}`, base64Data);
+              updateLogoPreview(type, base64Data);
+              showAlert(`Logo ${type.toUpperCase()} berhasil diperbarui!`, "success");
+            } catch (err) {
+              console.error(err);
+              showAlert("Gagal menyimpan logo. Penyimpanan browser penuh.", "danger");
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+
+      if (mtsFileInput) handleLogoUpload(mtsFileInput, 'mts');
+      if (maFileInput) handleLogoUpload(maFileInput, 'ma');
+
+      // Handle Logo Removals
+      if (removeMtsBtn) {
+        removeMtsBtn.addEventListener('click', () => {
+          localStorage.removeItem('smartexam_logo_mts');
+          updateLogoPreview('mts', null);
+          if (mtsFileInput) mtsFileInput.value = '';
+          showAlert("Logo MTs berhasil dihapus.", "success");
+        });
+      }
+
+      if (removeMaBtn) {
+        removeMaBtn.addEventListener('click', () => {
+          localStorage.removeItem('smartexam_logo_ma');
+          updateLogoPreview('ma', null);
+          if (maFileInput) maFileInput.value = '';
+          showAlert("Logo MA berhasil dihapus.", "success");
+        });
+      }
+    }
+
     // Init load on launch
+    initPrintSettings();
     loadActiveSession();
   </script>
 </body>
