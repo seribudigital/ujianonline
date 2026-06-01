@@ -126,7 +126,7 @@ form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   if (!activeSession) {
-    alert('Sesi ujian belum siap. Silakan hubungi proktor.');
+    showCustomAlert('Sesi ujian belum siap. Silakan hubungi proktor.', 'warning');
     return;
   }
 
@@ -134,12 +134,12 @@ form.addEventListener('submit', async (e) => {
   const namaVal = namaInput.value.trim();
 
   if (nisnVal.length !== 10) {
-    alert('NISN harus tepat 10 digit angka!');
+    showCustomAlert('NISN harus tepat 10 digit angka!', 'warning');
     return;
   }
 
   if (namaVal.length < 2) {
-    alert('Silakan masukkan nama lengkap Anda dengan benar!');
+    showCustomAlert('Silakan masukkan nama lengkap Anda dengan benar!', 'warning');
     return;
   }
 
@@ -166,7 +166,7 @@ form.addEventListener('submit', async (e) => {
     if (!studentData) {
       // Check if session is active
       if (activeSession && activeSession.is_active === false) {
-        alert("Maaf, sesi ujian untuk mata pelajaran ini sedang ditutup oleh Proktor.");
+        await showCustomAlert("Maaf, sesi ujian untuk mata pelajaran ini sedang ditutup oleh Proktor.", "warning");
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = `<i data-lucide="log-in"></i> Masuk Ruang Ujian`;
         lucide.createIcons();
@@ -209,8 +209,7 @@ form.addEventListener('submit', async (e) => {
     // Redirect to exam screen
     window.location.href = 'siswa-ujian.html';
   } catch (err) {
-    alert("Gagal masuk ruang ujian: " + err.message);
-    console.error(err);
+    await showCustomAlert("Gagal masuk ruang ujian: " + err.message, "danger");
     btnSubmit.disabled = false;
     btnSubmit.innerHTML = `<i data-lucide="log-in"></i> Masuk Ruang Ujian`;
     lucide.createIcons();

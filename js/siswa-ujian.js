@@ -74,6 +74,81 @@ let jawabanSiswa = {
   uraian: {}
 };
 
+// Student Ragu-Ragu State (loaded from localStorage on init)
+let raguSiswa = {};
+const savedRagu = localStorage.getItem('smartexam_ragu_siswa');
+if (savedRagu) {
+  try {
+    raguSiswa = JSON.parse(savedRagu);
+  } catch (e) {
+    console.error("Gagal memuat status ragu-ragu", e);
+  }
+}
+
+// Smooth scroll to a question card
+window.goToQuestion = function(globalIndex) {
+  const targetCard = document.getElementById(`soal-card-${globalIndex}`);
+  if (targetCard) {
+    targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Update active style in grid
+    document.querySelectorAll('.nav-num').forEach((n) => n.classList.remove('active'));
+    const btn = document.getElementById(`nav-num-${globalIndex}`);
+    if (btn) {
+      btn.classList.add('active');
+    }
+  }
+};
+
+// Toggle Ragu-Ragu state for a question
+window.toggleRagu = function(qid, globalIndex) {
+  const checkbox = document.getElementById(`ragu-${qid}`);
+  if (checkbox) {
+    if (checkbox.checked) {
+      raguSiswa[qid] = true;
+    } else {
+      delete raguSiswa[qid];
+    }
+    localStorage.setItem('smartexam_ragu_siswa', JSON.stringify(raguSiswa));
+    
+    // Update visual style in navigation grid
+    updateNavGridButton(globalIndex, qid);
+  }
+};
+
+// Update navigation grid button classes dynamically
+window.updateNavGridButton = function(globalIndex, qid) {
+  const btn = document.getElementById(`nav-num-${globalIndex}`);
+  if (!btn) return;
+
+  const q = questionsList[globalIndex - 1];
+  if (!q) return;
+
+  let isAnswered = false;
+  if (q.type === 'pg') {
+    isAnswered = !!jawabanSiswa.pg[qid];
+  } else {
+    isAnswered = !!jawabanSiswa.uraian[qid] && jawabanSiswa.uraian[qid].trim().length > 0;
+  }
+
+  const isRagu = !!raguSiswa[qid];
+
+  // Remove existing color classes
+  btn.classList.remove('answered', 'ragu-answered', 'ragu-empty');
+  
+  if (isRagu) {
+    if (isAnswered) {
+      btn.classList.add('ragu-answered');
+    } else {
+      btn.classList.add('ragu-empty');
+    }
+  } else {
+    if (isAnswered) {
+      btn.classList.add('answered');
+    }
+  }
+};
+
 // Load session data
 function loadSessionData() {
   const activeSessionRaw = localStorage.getItem('smartexam_active_session');
@@ -343,6 +418,48 @@ function renderQuestions() {
     card.className = 'card soal-item';
     card.id = `soal-card-${q.globalIndex}`;
 
+    // Render navigation buttons html
+    const isFirst = q.globalIndex === 1;
+    const isLast = q.globalIndex === questionsList.length;
+
+    let prevBtnHtml = isFirst ? '' : `
+      <button class="btn btn-secondary" onclick="goToQuestion(${q.globalIndex - 1})" style="padding: 0.5rem 1rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+        <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Soal Sebelumnya
+      </button>
+    `;
+
+    let nextBtnHtml = '';
+    if (isLast) {
+      nextBtnHtml = `
+        <button class="btn btn-success" onclick="submitUjian(false, 'manual')" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem; background-color: var(--success); color: #ffffff; border-color: var(--success);">
+          <i data-lucide="check-square" style="width: 16px; height: 16px;"></i> Selesai & Kumpulkan
+        </button>
+      `;
+    } else {
+      nextBtnHtml = `
+        <button class="btn btn-primary" onclick="goToQuestion(${q.globalIndex + 1})" style="padding: 0.5rem 1.25rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+          Soal Selanjutnya <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+        </button>
+      `;
+    }
+
+    const navButtonsHtml = `
+      <div class="soal-nav-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; border-top: 1px solid var(--border-color); padding-top: 1rem; gap: 1rem; flex-wrap: wrap;">
+        <label class="ragu-toggle" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; font-weight: 600; color: #d97706; cursor: pointer; user-select: none;">
+          <input type="checkbox" 
+                 id="ragu-${q.id}" 
+                 ${raguSiswa[q.id] ? 'checked' : ''} 
+                 onchange="toggleRagu('${q.id}', ${q.globalIndex})"
+                 style="width: 16px; height: 16px; accent-color: #f59e0b; cursor: pointer;">
+          <span>🟨 Ragu-Ragu / Tandai Soal</span>
+        </label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          ${prevBtnHtml}
+          ${nextBtnHtml}
+        </div>
+      </div>
+    `;
+
     if (q.type === 'pg') {
       // Render PG options
       let optionsHtml = '';
@@ -374,6 +491,7 @@ function renderQuestions() {
         <div class="opsi-list">
           ${optionsHtml}
         </div>
+        ${navButtonsHtml}
       `;
     } else {
       // Render Essay Textarea
@@ -390,11 +508,15 @@ function renderQuestions() {
                     placeholder="Ketikkan lembar jawaban uraian Anda di sini..." 
                     oninput="saveAnswerEssay('${q.id}', this.value, ${q.globalIndex})">${savedEssayAnswer}</textarea>
         </div>
+        ${navButtonsHtml}
       `;
     }
 
     soalContainer.appendChild(card);
   });
+
+  // Render Lucide icons for dynamic items
+  lucide.createIcons();
 }
 
 // Render navigation sidebar grid
@@ -407,31 +529,15 @@ function renderNavigationGrid() {
     btn.id = `nav-num-${q.globalIndex}`;
     btn.textContent = q.globalIndex;
 
-    // Check if already answered to color it
-    let isAnswered = false;
-    if (q.type === 'pg') {
-      isAnswered = !!jawabanSiswa.pg[q.id];
-    } else {
-      isAnswered = !!jawabanSiswa.uraian[q.id] && jawabanSiswa.uraian[q.id].trim().length > 0;
-    }
-
-    if (isAnswered) {
-      btn.classList.add('answered');
-    }
-
     // Click handler to scroll to question smooth
     btn.addEventListener('click', () => {
-      const targetCard = document.getElementById(`soal-card-${q.globalIndex}`);
-      if (targetCard) {
-        targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        
-        // Set active focus style
-        document.querySelectorAll('.nav-num').forEach((n) => n.classList.remove('active'));
-        btn.classList.add('active');
-      }
+      goToQuestion(q.globalIndex);
     });
 
     navGrid.appendChild(btn);
+
+    // Initial state check for answers & flags
+    updateNavGridButton(q.globalIndex, q.id);
   });
 }
 
@@ -456,11 +562,8 @@ window.saveAnswerPG = async function(qid, value, globalIndex) {
     selectedLabel.classList.add('selected');
   }
 
-  // Mark sidebar button as answered
-  const navBtn = document.getElementById(`nav-num-${globalIndex}`);
-  if (navBtn) {
-    navBtn.classList.add('answered');
-  }
+  // Mark sidebar button state
+  updateNavGridButton(globalIndex, qid);
 
   updateAnswerProgress();
 
@@ -511,14 +614,7 @@ window.saveAnswerEssay = function(qid, value, globalIndex) {
   localStorage.setItem('smartexam_jawaban_siswa', JSON.stringify(jawabanSiswa));
 
   // Update sidebar color state
-  const navBtn = document.getElementById(`nav-num-${globalIndex}`);
-  if (navBtn) {
-    if (value.trim().length > 0) {
-      navBtn.classList.add('answered');
-    } else {
-      navBtn.classList.remove('answered');
-    }
-  }
+  updateNavGridButton(globalIndex, qid);
 
   updateAnswerProgress();
 
@@ -685,7 +781,7 @@ async function submitUjian(isAuto = false, submitType = 'manual') {
   if (examSubmitted) return;
 
   if (!isAuto) {
-    const confirmSubmit = confirm("Apakah Anda yakin ingin menyelesaikan ujian dan mengumpulkan seluruh jawaban? Jawaban tidak dapat diubah kembali.");
+    const confirmSubmit = await showCustomConfirm("Apakah Anda yakin ingin menyelesaikan ujian dan mengumpulkan seluruh jawaban? Jawaban tidak dapat diubah kembali.");
     if (!confirmSubmit) return;
   }
 
@@ -855,6 +951,7 @@ btnReturnLogin.addEventListener('click', () => {
   // Clear student session details but preserve the active exam session
   localStorage.removeItem('smartexam_student_session');
   localStorage.removeItem('smartexam_jawaban_siswa');
+  localStorage.removeItem('smartexam_ragu_siswa');
   localStorage.removeItem('smartexam_exam_submitted');
   localStorage.removeItem('smartexam_exam_submit_type');
   localStorage.removeItem('smartexam_violation_count');
@@ -867,17 +964,19 @@ btnSubmitExamBottom.addEventListener('click', () => submitUjian(false, 'manual')
 btnSubmitExamSidebar.addEventListener('click', () => submitUjian(false, 'manual'));
 
 // Handle session exit (Log out)
-btnLogout.addEventListener('click', () => {
+btnLogout.addEventListener('click', async () => {
   if (examSubmitted) {
     localStorage.removeItem('smartexam_student_session');
     localStorage.removeItem('smartexam_jawaban_siswa');
+    localStorage.removeItem('smartexam_ragu_siswa');
     localStorage.removeItem('smartexam_exam_submitted');
     localStorage.removeItem('smartexam_exam_submit_type');
     localStorage.removeItem('smartexam_violation_count');
     localStorage.removeItem('smartexam_exam_end_time');
     window.location.href = 'siswa-login.html';
   } else {
-    if (confirm("Apakah Anda yakin ingin keluar ruangan ujian? Sisa waktu ujian Anda akan tetap berjalan.")) {
+    const confirmLogout = await showCustomConfirm("Apakah Anda yakin ingin keluar ruangan ujian? Sisa waktu ujian Anda akan tetap berjalan.");
+    if (confirmLogout) {
       // If they leave without submitting, do NOT clear answers so they can log back in.
       localStorage.removeItem('smartexam_student_session');
       window.location.href = 'siswa-login.html';
