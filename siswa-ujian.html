@@ -56,7 +56,7 @@
         <!-- Kop Surat Ujian Resmi (Official Exam Letterhead) -->
         <div class="kop-surat">
           <div class="kop-header">
-            <div class="kop-logo">
+            <div class="kop-logo" id="kop-logo-container">
               <!-- Placeholder logo simulating Ministry seal -->
               <i data-lucide="landmark" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
             </div>
@@ -487,6 +487,40 @@
 
       // Populate Letterhead (Kop Surat) & Metadata Box
       kopMadrasah.textContent = meta.madrasah || 'MADRASAH ALIYAH';
+      
+      // Populate dynamic school logo
+      const logoContainer = document.getElementById('kop-logo-container');
+      if (logoContainer) {
+        const mapelLower = (meta.mapel_nama || '').toLowerCase();
+        const kelasLower = (meta.kelas || '').toLowerCase();
+        const madrasahLower = (meta.madrasah || '').toLowerCase();
+        
+        let isMts = mapelLower.includes('mts') || 
+                    /\b(7|8|9|vii|viii|ix)\b/.test(kelasLower) || 
+                    madrasahLower.includes('mts') || 
+                    madrasahLower.includes('tsanawiyah');
+                    
+        let isMa = mapelLower.includes('ma') || 
+                   mapelLower.includes('aliyah') || 
+                   /\b(10|11|12|x|xi|xii)\b/.test(kelasLower) || 
+                   madrasahLower.includes('ma') || 
+                   madrasahLower.includes('aliyah');
+
+        let logoType = 'ma';
+        if (isMts && !isMa) {
+          logoType = 'mts';
+        }
+        
+        const savedLogo = localStorage.getItem(`smartexam_logo_${logoType}`);
+        const defaultLogo = logoType === 'mts' ? 'logo mts Alkhoir.png' : 'logo MA Alkhoir.jpg';
+        const logoUrl = savedLogo || defaultLogo;
+        
+        if (logoUrl) {
+          logoContainer.innerHTML = `<img src="${logoUrl}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo Madrasah">`;
+          logoContainer.style.border = 'none';
+        }
+      }
+
       if (meta.semester && meta.tahun) {
         kopJenisUjian.textContent = `UJIAN SEMESTER ${meta.semester.toUpperCase()} TAHUN PELAJARAN ${meta.tahun}`;
       }

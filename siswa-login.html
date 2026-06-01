@@ -15,7 +15,7 @@
 
     <div class="login-card card">
       <div class="login-header">
-        <div class="login-logo">
+        <div class="login-logo" id="login-logo-container">
           <i data-lucide="graduation-cap" style="width: 32px; height: 32px;"></i>
         </div>
         <h2>SmartExam-Online</h2>
@@ -138,6 +138,7 @@
 
           // Save active session locally
           localStorage.setItem('smartexam_active_session', JSON.stringify(activeSession));
+          displayLogo();
 
           // Auto-redirect if student session already present
           const studentSessionRaw = localStorage.getItem('smartexam_student_session');
@@ -282,7 +283,51 @@
       }
     });
 
+    // Display dynamic school logo with fallbacks
+    function displayLogo() {
+      const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+      let logoType = 'ma'; // default
+      if (activeSessionRaw) {
+        try {
+          const session = JSON.parse(activeSessionRaw);
+          const meta = session.metadata ? session.metadata : session;
+          
+          const mapelLower = (meta.mapel_nama || '').toLowerCase();
+          const kelasLower = (meta.kelas || '').toLowerCase();
+          const madrasahLower = (meta.madrasah || '').toLowerCase();
+          
+          const isMts = mapelLower.includes('mts') || 
+                        /\b(7|8|9|vii|viii|ix)\b/.test(kelasLower) || 
+                        madrasahLower.includes('mts') || 
+                        madrasahLower.includes('tsanawiyah');
+                        
+          const isMa = mapelLower.includes('ma') || 
+                       mapelLower.includes('aliyah') || 
+                       /\b(10|11|12|x|xi|xii)\b/.test(kelasLower) || 
+                       madrasahLower.includes('ma') || 
+                       madrasahLower.includes('aliyah');
+
+          if (isMts && !isMa) {
+            logoType = 'mts';
+          }
+        } catch (e) {
+          console.error("Gagal membaca active session untuk logo", e);
+        }
+      }
+      
+      const savedLogo = localStorage.getItem(`smartexam_logo_${logoType}`);
+      const defaultLogo = logoType === 'mts' ? 'logo mts Alkhoir.png' : 'logo MA Alkhoir.jpg';
+      const logoUrl = savedLogo || defaultLogo;
+      
+      const logoContainer = document.getElementById('login-logo-container');
+      if (logoContainer && logoUrl) {
+        logoContainer.innerHTML = `<img src="${logoUrl}" style="width: 100%; height: 100%; object-fit: contain; border-radius: inherit;" alt="Logo Madrasah">`;
+        logoContainer.style.backgroundColor = 'transparent';
+      }
+    }
+
     // Run session checks
+    displayLogo();
     checkSessions();
   </script>
 </body>

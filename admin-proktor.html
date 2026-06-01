@@ -1493,12 +1493,12 @@
                    madrasahLower.includes('aliyah');
 
         if (isMts && !isMa) {
-          selectedLogo = localStorage.getItem('smartexam_logo_mts');
+          selectedLogo = localStorage.getItem('smartexam_logo_mts') || 'logo mts Alkhoir.png';
         } else if (isMa && !isMts) {
-          selectedLogo = localStorage.getItem('smartexam_logo_ma');
+          selectedLogo = localStorage.getItem('smartexam_logo_ma') || 'logo MA Alkhoir.jpg';
         } else {
           // Ambiguous or neither detected: use MA if exists, else MTs
-          selectedLogo = localStorage.getItem('smartexam_logo_ma') || localStorage.getItem('smartexam_logo_mts');
+          selectedLogo = localStorage.getItem('smartexam_logo_ma') || localStorage.getItem('smartexam_logo_mts') || 'logo MA Alkhoir.jpg';
         }
 
         let logoHtml = '';
@@ -1687,18 +1687,14 @@
         
         if (!previewContainer) return;
         
-        if (base64Data) {
-          previewContainer.innerHTML = `<img src="${base64Data}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo ${type.toUpperCase()}">`;
-          if (removeBtn) removeBtn.style.display = 'block';
-        } else {
-          // Silhouette placeholder SVG
-          previewContainer.innerHTML = `
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="var(--text-muted)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5;">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-              <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"></path>
-            </svg>
-          `;
-          if (removeBtn) removeBtn.style.display = 'none';
+        const defaultLogo = type === 'mts' ? 'logo mts Alkhoir.png' : 'logo MA Alkhoir.jpg';
+        const logoUrl = base64Data || defaultLogo;
+        
+        if (logoUrl) {
+          previewContainer.innerHTML = `<img src="${logoUrl}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo ${type.toUpperCase()}">`;
+          if (removeBtn) {
+            removeBtn.style.display = base64Data ? 'block' : 'none';
+          }
         }
       };
 
