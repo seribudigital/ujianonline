@@ -921,7 +921,7 @@
           </div>
           <div>
             <div style="margin-bottom: 0.5rem;"><strong>Kelas:</strong> ${meta.kelas}</div>
-            <div style="margin-bottom: 0.5rem;"><strong>Paket Soal:</strong> ${meta.paket}</div>
+            <div style="margin-bottom: 0.5rem;"><strong>Semester:</strong> ${meta.semester || '-'}</div>
             <div style="margin-bottom: 0.5rem;"><strong>Catatan Pelanggaran:</strong> <span style="color: ${student.violation_count > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight: 700;">${student.violation_count} kali</span></div>
           </div>
         </div>
@@ -1129,9 +1129,9 @@
                   <span class="rapot-value">${student.nisn}</span>
                 </div>
                 <div class="rapot-row">
-                  <span class="rapot-label">Kelas / Paket</span>
+                  <span class="rapot-label">Kelas / Semester</span>
                   <span class="rapot-titikdua">:</span>
-                  <span class="rapot-value">${meta.kelas} / Paket ${meta.paket}</span>
+                  <span class="rapot-value">${meta.kelas} / ${meta.semester}</span>
                 </div>
               </div>
               <div>
