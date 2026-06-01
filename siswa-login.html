@@ -89,7 +89,7 @@
       cleanUrl = cleanUrl.slice(0, -1);
     }
 
-    const supabaseClient = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
+    let supabaseClient = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
 
     // Initialize Lucide icons
     lucide.createIcons();
@@ -121,9 +121,9 @@
       }
 
       try {
-        // Fetch the latest active exam session from Supabase
+        // Fetch the latest active exam session from Supabase (using view_soal_siswa to hide keys)
         const { data, error } = await supabaseClient
-          .from('ujian_aktif')
+          .from('view_soal_siswa')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(1)
@@ -241,6 +241,17 @@
       lucide.createIcons();
 
       try {
+        // Reinitialize supabaseClient with custom header for RLS validation
+        if (window.supabase) {
+          supabaseClient = window.supabase.createClient(cleanUrl, SUPABASE_KEY, {
+            global: {
+              headers: {
+                'x-student-nisn': nisnVal
+              }
+            }
+          });
+        }
+
         // Fetch or create student row in Supabase
         let { data: studentData, error: selectError } = await supabaseClient
           .from('jawaban_siswa')

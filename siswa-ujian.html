@@ -364,7 +364,7 @@
       cleanUrl = cleanUrl.slice(0, -1);
     }
 
-    const supabaseClient = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
+    let supabaseClient = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
 
     // Initialize Lucide Icons
     lucide.createIcons();
@@ -475,11 +475,22 @@
     async function initExam() {
       if (!loadSessionData()) return;
 
+      // Reinitialize supabaseClient with student NISN header for RLS
+      if (window.supabase && studentSession && studentSession.nisn) {
+        supabaseClient = window.supabase.createClient(cleanUrl, SUPABASE_KEY, {
+          global: {
+            headers: {
+              'x-student-nisn': studentSession.nisn
+            }
+          }
+        });
+      }
+
       // Force fetch active session from Supabase to ensure guru and semester metadata are always fresh
       if (supabaseClient && activeSession && activeSession.id) {
         try {
           const { data, error } = await supabaseClient
-            .from('ujian_aktif')
+            .from('view_soal_siswa')
             .select('*')
             .eq('id', activeSession.id)
             .maybeSingle();
@@ -1063,7 +1074,7 @@
 
       // Sync violation count to Supabase immediately
       if (supabaseClient && activeSession && studentSession) {
-        supabase
+        supabaseClient
           .from('jawaban_siswa')
           .update({ violation_count: storedViolations })
           .eq('mapel_id', activeSession.id)

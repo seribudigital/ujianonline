@@ -28,8 +28,203 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- SheetJS for Excel exports -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <style>
+    /* Proctor Login Gatekeeper Overlay Style */
+    #proktor-login-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #022c22 0%, #064e3b 40%, #022c22 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999999;
+      color: #ffffff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    
+    .gatekeeper-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 3rem 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      animation: floatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .gatekeeper-logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 20px -5px rgba(5, 150, 105, 0.4);
+      border: 2px solid rgba(245, 158, 11, 0.6);
+    }
+
+    .gatekeeper-card h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.025em;
+      color: #ffffff;
+    }
+
+    .gatekeeper-card p {
+      color: #9ca3af;
+      font-size: 0.875rem;
+      margin-bottom: 2rem;
+    }
+
+    .gatekeeper-form-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+      position: relative;
+    }
+
+    .gatekeeper-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #d1d5db;
+      margin-bottom: 0.5rem;
+    }
+
+    .gatekeeper-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .gatekeeper-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 0.875rem 1rem;
+      padding-right: 3rem;
+      font-size: 1rem;
+      color: #ffffff;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .gatekeeper-input:focus {
+      border-color: #059669;
+      box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.25);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .gatekeeper-toggle-pwd {
+      position: absolute;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 0;
+    }
+
+    .gatekeeper-toggle-pwd:hover {
+      color: #ffffff;
+    }
+
+    .gatekeeper-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 0.875rem 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .gatekeeper-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.3), 0 4px 6px -2px rgba(5, 150, 105, 0.2);
+    }
+
+    .gatekeeper-btn:active {
+      transform: translateY(0);
+    }
+
+    .gatekeeper-error {
+      color: #ef4444;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      display: none;
+      align-items: center;
+      gap: 0.25rem;
+    }
+  </style>
 </head>
 <body>
+
+  <!-- Proctor Gatekeeper Login Overlay -->
+  <div id="proktor-login-overlay" style="display: flex;">
+    <div class="gatekeeper-card">
+      <div class="gatekeeper-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" style="width: 48px; height: 48px;">
+          <path d="M50 22 L74 31 L50 40 L26 31 Z" fill="#F59E0B" />
+          <path d="M36 34.5 V42 C36 46 64 46 64 42 V34.5" fill="#F59E0B" />
+          <path d="M50 31 L68 33.5 V43" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" />
+          <circle cx="68" cy="44.5" r="1.5" fill="#FFFFFF" />
+          <path d="M32 54 C41 49.5 48 51.5 50 53.5 C52 51.5 59 49.5 68 54 L68 68 C59 63.5 52 65.5 50 67.5 C48 65.5 41 63.5 32 68 Z" fill="#FFFFFF" />
+          <line x1="50" y1="53.5" x2="50" y2="67.5" stroke="#F59E0B" stroke-width="1.5" />
+          <path d="M42.5 59 L47.5 64 L57.5 53.5" fill="none" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <h2>AmanaExam</h2>
+      <p>Gerbang Akses Dashboard Proktor / Pengawas</p>
+      
+      <form id="proktor-login-form">
+        <div class="gatekeeper-form-group">
+          <label for="proktor-password" class="gatekeeper-label">Password Keamanan Proktor</label>
+          <div class="gatekeeper-input-wrapper">
+            <input type="password" id="proktor-password" class="gatekeeper-input" placeholder="Masukkan password" required autocomplete="current-password">
+            <button type="button" id="gatekeeper-toggle-pwd" class="gatekeeper-toggle-pwd">
+              <i data-lucide="eye" style="width: 20px; height: 20px;"></i>
+            </button>
+          </div>
+          <div id="gatekeeper-error-msg" class="gatekeeper-error">
+            <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i> Password yang dimasukkan salah!
+          </div>
+        </div>
+        
+        <button type="submit" class="gatekeeper-btn" id="proktor-login-btn">
+          <i data-lucide="shield-check"></i> Masuk Dashboard
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- Navigation Bar -->
   <nav class="navbar">
@@ -60,6 +255,7 @@
     <ul class="navbar-nav">
       <li><a href="admin-proktor.html" class="nav-link active">Proktor Dashboard</a></li>
       <li><a href="siswa-login.html" class="nav-link">Portal Siswa</a></li>
+      <li><a href="#" id="btn-proktor-logout" class="nav-link" style="color: var(--danger); font-weight: 600;"><i data-lucide="log-out" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i> Keluar</a></li>
     </ul>
   </nav>
 
@@ -385,7 +581,23 @@
       cleanUrl = cleanUrl.slice(0, -1);
     }
 
-    const supabaseClient = window.supabase ? window.supabase.createClient(cleanUrl, SUPABASE_KEY) : null;
+    // Initialize Supabase Client with RLS bypass header if proktor is logged in
+    let supabaseClient = null;
+    const proktorPasswordSaved = sessionStorage.getItem('smartexam_proktor_password');
+
+    if (window.supabase) {
+      if (proktorPasswordSaved) {
+        supabaseClient = window.supabase.createClient(cleanUrl, SUPABASE_KEY, {
+          global: {
+            headers: {
+              'x-proktor-password': proktorPasswordSaved
+            }
+          }
+        });
+      } else {
+        supabaseClient = window.supabase.createClient(cleanUrl, SUPABASE_KEY);
+      }
+    }
 
     // Initialize Lucide icons
     lucide.createIcons();
@@ -1816,9 +2028,98 @@
       }
     }
 
+    // Proctor Password Hashing helper (SHA-256)
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashHex;
+    }
+
+    // Check if proktor is authenticated on load
+    const proktorLoginOverlay = document.getElementById('proktor-login-overlay');
+    const proktorLoginForm = document.getElementById('proktor-login-form');
+    const proktorPasswordInput = document.getElementById('proktor-password');
+    const gatekeeperErrorMsg = document.getElementById('gatekeeper-error-msg');
+    const btnTogglePwd = document.getElementById('gatekeeper-toggle-pwd');
+
+    if (sessionStorage.getItem('smartexam_proktor_logged_in') === 'true') {
+      if (proktorLoginOverlay) proktorLoginOverlay.style.display = 'none';
+    } else {
+      if (proktorLoginOverlay) proktorLoginOverlay.style.display = 'flex';
+    }
+
+    // Toggle password visibility
+    if (btnTogglePwd && proktorPasswordInput) {
+      btnTogglePwd.addEventListener('click', () => {
+        const type = proktorPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        proktorPasswordInput.setAttribute('type', type);
+        if (type === 'text') {
+          btnTogglePwd.innerHTML = '<i data-lucide="eye-off" style="width: 20px; height: 20px;"></i>';
+        } else {
+          btnTogglePwd.innerHTML = '<i data-lucide="eye" style="width: 20px; height: 20px;"></i>';
+        }
+        lucide.createIcons();
+      });
+    }
+
+    // Handle Proctor Login form submit
+    if (proktorLoginForm) {
+      proktorLoginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pwdVal = proktorPasswordInput.value;
+        const hash = await sha256(pwdVal);
+        
+        // Target hash for 'amana123'
+        if (hash === '37727923faa2385716694989ac2654b352d0ced5aa78ab542047c6ed87559a15') {
+          sessionStorage.setItem('smartexam_proktor_logged_in', 'true');
+          sessionStorage.setItem('smartexam_proktor_password', pwdVal);
+          
+          if (proktorLoginOverlay) proktorLoginOverlay.style.display = 'none';
+          
+          // Re-initialize supabaseClient with custom header for RLS bypass
+          if (window.supabase) {
+            supabaseClient = window.supabase.createClient(cleanUrl, SUPABASE_KEY, {
+              global: {
+                headers: {
+                  'x-proktor-password': pwdVal
+                }
+              }
+            });
+          }
+          
+          // Reload dashboard data
+          showAlert('Login Proktor Berhasil!', 'success');
+          loadActiveSession();
+        } else {
+          if (gatekeeperErrorMsg) gatekeeperErrorMsg.style.display = 'flex';
+          proktorPasswordInput.value = '';
+          proktorPasswordInput.focus();
+        }
+      });
+    }
+
+    // Handle proktor logout
+    const btnProktorLogout = document.getElementById('btn-proktor-logout');
+    if (btnProktorLogout) {
+      btnProktorLogout.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm("Apakah Anda yakin ingin keluar dari Dashboard Proktor?")) {
+          sessionStorage.removeItem('smartexam_proktor_logged_in');
+          sessionStorage.removeItem('smartexam_proktor_password');
+          window.location.reload();
+        }
+      });
+    }
+
     // Init load on launch
     initPrintSettings();
-    loadActiveSession();
+    if (sessionStorage.getItem('smartexam_proktor_logged_in') === 'true') {
+      loadActiveSession();
+    } else {
+      showNoSession();
+    }
   </script>
 </body>
 </html>
