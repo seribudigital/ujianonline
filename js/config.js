@@ -140,14 +140,16 @@ function showCustomAlert(message, type = 'danger') {
     // Fade-in animation
     setTimeout(() => {
       modal.style.opacity = '1';
-      modal.firstElementChild.style.transform = 'scale(1)';
+      const cardEl = modal.querySelector('.card');
+      if (cardEl) cardEl.style.transform = 'scale(1)';
     }, 10);
 
     // OK Click handler
     const okBtn = modal.querySelector('#custom-alert-ok-btn');
     const closeModal = () => {
       modal.style.opacity = '0';
-      modal.firstElementChild.style.transform = 'scale(0.9)';
+      const cardEl = modal.querySelector('.card');
+      if (cardEl) cardEl.style.transform = 'scale(0.9)';
       setTimeout(() => {
         modal.remove();
         resolve();
@@ -237,7 +239,8 @@ function showCustomConfirm(message) {
     // Fade-in animation
     setTimeout(() => {
       modal.style.opacity = '1';
-      modal.firstElementChild.style.transform = 'scale(1)';
+      const cardEl = modal.querySelector('.card');
+      if (cardEl) cardEl.style.transform = 'scale(1)';
     }, 10);
 
     const okBtn = modal.querySelector('#custom-confirm-ok-btn');
@@ -245,7 +248,8 @@ function showCustomConfirm(message) {
 
     const closeWithResult = (result) => {
       modal.style.opacity = '0';
-      modal.firstElementChild.style.transform = 'scale(0.9)';
+      const cardEl = modal.querySelector('.card');
+      if (cardEl) cardEl.style.transform = 'scale(0.9)';
       setTimeout(() => {
         modal.remove();
         resolve(result);

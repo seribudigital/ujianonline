@@ -984,5 +984,8 @@ btnLogout.addEventListener('click', async () => {
   }
 });
 
+// Attach submitUjian globally to window so that inline onclick handlers can call it reliably
+window.submitUjian = submitUjian;
+
 // Run Initialization
 initExam();
