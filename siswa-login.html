@@ -229,6 +229,15 @@
         if (selectError) throw selectError;
 
         if (!studentData) {
+          // Check if session is active
+          if (activeSession && activeSession.is_active === false) {
+            alert("Maaf, sesi ujian untuk mata pelajaran ini sedang ditutup oleh Proktor.");
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = `<i data-lucide="log-in"></i> Masuk Ruang Ujian`;
+            lucide.createIcons();
+            return;
+          }
+
           // New login, create a record
           const { data: newRow, error: insertError } = await supabaseClient
             .from('jawaban_siswa')

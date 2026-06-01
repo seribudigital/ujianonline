@@ -158,10 +158,38 @@
                 <i data-lucide="check-circle-2" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
                 <span>Sesi ujian siap diakses oleh siswa di database cloud.</span>
               </div>
-              <button class="btn btn-danger" id="btn-clear-session" style="width: 100%;">
-                <i data-lucide="trash-2"></i> Hapus Sesi Ujian
+              <button class="btn btn-danger" id="btn-toggle-session" style="width: 100%;">
+                <i data-lucide="lock"></i> Tutup Sesi Ujian
               </button>
             </div>
+          </div>
+        </div>
+
+        <!-- Archive & Backup Management Card -->
+        <div class="card" style="margin-top: 1.5rem;">
+          <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+            <i data-lucide="archive" style="color: var(--primary); width: 20px; height: 20px;"></i> Manajemen Arsip Ujian
+          </h3>
+          <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">
+            Unduh cadangan data untuk akuntabilitas jangka panjang atau buka kembali file arsip secara offline.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <!-- Download Button -->
+            <button class="btn btn-secondary" id="btn-download-archive" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" disabled>
+              <i data-lucide="package"></i> Download Arsip Cadangan (JSON)
+            </button>
+
+            <!-- Upload Button & Hidden Input -->
+            <input type="file" id="archive-file-input" accept=".json" style="display: none;">
+            <button class="btn btn-secondary" id="btn-upload-archive-trigger" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+              <i data-lucide="upload-cloud"></i> Upload & Buka File Arsip JSON
+            </button>
+
+            <!-- Permanent Delete Button -->
+            <button class="btn" id="btn-delete-permanently" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; border: none; font-weight: 700; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);" disabled>
+              <i data-lucide="alert-octagon"></i> Hapus Permanen Data Sesi dari Cloud
+            </button>
           </div>
         </div>
 
@@ -238,6 +266,18 @@
           <span class="badge badge-success" id="monitor-count">0 Siswa Terdaftar</span>
         </div>
       </div>
+
+      <!-- Offline Mode Banner -->
+      <div id="offline-archive-banner" style="display: none; background-color: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; align-items: center; justify-content: space-between; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+          <i data-lucide="info" style="color: var(--secondary); flex-shrink: 0; width: 18px; height: 18px;"></i>
+          <span><strong>Mode Offline:</strong> Anda sedang membuka berkas arsip cadangan secara lokal. Sinkronisasi cloud ditangguhkan.</span>
+        </div>
+        <button class="btn" id="btn-exit-offline" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; background-color: #ffffff; border: 1px solid #c7d2fe; color: #3730a3; font-weight: 600;">
+          <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Kembali ke Live Monitor
+        </button>
+      </div>
+
       <div class="table-responsive">
         <table class="data-table">
           <thead>
@@ -323,7 +363,7 @@
     
     const noSessionContent = document.getElementById('no-session-content');
     const sessionActiveContent = document.getElementById('session-active-content');
-    const btnClearSession = document.getElementById('btn-clear-session');
+    const btnToggleSession = document.getElementById('btn-toggle-session');
 
     // Metadata DOM fields
     const valMapelId = document.getElementById('val-mapel-id');
@@ -424,6 +464,29 @@
           const btnExportExcel = document.getElementById('btn-export-excel');
           if (btnExportExcel) btnExportExcel.disabled = false;
 
+          // Update Toggle Session button
+          const btnToggleSession = document.getElementById('btn-toggle-session');
+          if (btnToggleSession) {
+            const isActive = session.is_active !== false; // defaults to true
+            if (isActive) {
+              btnToggleSession.className = 'btn btn-danger';
+              btnToggleSession.style.backgroundColor = '';
+              btnToggleSession.style.color = '';
+              btnToggleSession.innerHTML = `<i data-lucide="lock"></i> Tutup Sesi Ujian`;
+            } else {
+              btnToggleSession.className = 'btn';
+              btnToggleSession.style.backgroundColor = 'var(--success)';
+              btnToggleSession.style.color = '#ffffff';
+              btnToggleSession.innerHTML = `<i data-lucide="unlock"></i> Buka Sesi Ujian`;
+            }
+          }
+
+          // Enable archive buttons that require active session
+          const btnDownloadArchive = document.getElementById('btn-download-archive');
+          const btnDeletePermanently = document.getElementById('btn-delete-permanently');
+          if (btnDownloadArchive) btnDownloadArchive.disabled = false;
+          if (btnDeletePermanently) btnDeletePermanently.disabled = false;
+
           // Toggle view
           noSessionContent.style.display = 'none';
           sessionActiveContent.style.display = 'block';
@@ -449,6 +512,12 @@
       const btnExportExcel = document.getElementById('btn-export-excel');
       if (btnExportExcel) btnExportExcel.disabled = true;
 
+      // Disable archive buttons requiring active session
+      const btnDownloadArchive = document.getElementById('btn-download-archive');
+      const btnDeletePermanently = document.getElementById('btn-delete-permanently');
+      if (btnDownloadArchive) btnDownloadArchive.disabled = true;
+      if (btnDeletePermanently) btnDeletePermanently.disabled = true;
+
       monitorTableBody.innerHTML = `
         <tr>
           <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
@@ -465,52 +534,288 @@
       }
     }
 
-    // Clear Session with Option to Keep or Delete Student Answers
-    btnClearSession.addEventListener('click', async () => {
-      const wantToDeleteSession = confirm('Apakah Anda yakin ingin MENGAKHIRI dan MENGHAPUS SESI ujian aktif ini?\n\n(Siswa yang sedang aktif ujian akan langsung terputus dari sesi ini)');
-      
-      if (wantToDeleteSession) {
-        const wantToDeleteAnswers = confirm('PENTING:\nApakah Anda juga ingin MENGHAPUS SEMUA DATA JAWABAN SISWA dari database Supabase (Reset Total)?\n\n- Klik "OK" untuk MENGHAPUS SEMUA DATA JAWABAN SISWA.\n- Klik "Batal" jika Anda ingin TETAP MENYIMPAN hasil pengerjaan siswa (Direkomendasikan agar nilai/arsip tetap bisa diekspor ke Excel).');
+    // Toggle active session status in Supabase and locally
+    if (btnToggleSession) {
+      btnToggleSession.addEventListener('click', async () => {
+        if (!supabaseClient || !idUjianAktif) {
+          showAlert('Tidak ada koneksi database atau sesi ujian aktif.', 'danger');
+          return;
+        }
 
-        if (supabaseClient && idUjianAktif) {
+        const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+        if (!activeSessionRaw) return;
+
+        let session = JSON.parse(activeSessionRaw);
+        const currentStatus = session.is_active !== false; // default true
+        const nextStatus = !currentStatus;
+
+        const actionText = nextStatus ? 'MEMBUKA' : 'MENUTUP';
+        const confirmMsg = `Apakah Anda yakin ingin ${actionText} sesi ujian ini untuk siswa?\n\n(Jika ditutup, siswa baru yang mencoba login akan ditolak)`;
+        
+        if (confirm(confirmMsg)) {
           try {
-            // Delete active session config
-            const { error: sessionError } = await supabaseClient
+            showAlert(`Sedang ${nextStatus ? 'membuka' : 'menutup'} sesi di database cloud...`, 'info');
+            const { error } = await supabaseClient
               .from('ujian_aktif')
-              .delete()
+              .update({ is_active: nextStatus })
               .eq('id', idUjianAktif);
 
-            if (sessionError) {
-              showAlert('Gagal menghapus sesi ujian dari database cloud: ' + sessionError.message, 'danger');
+            if (error) {
+              showAlert('Gagal mengubah status sesi ujian: ' + error.message, 'danger');
               return;
             }
 
-            // If proctor wanted to delete student answers too
-            if (wantToDeleteAnswers) {
-              const { error: answersError } = await supabaseClient
-                .from('jawaban_siswa')
-                .delete()
-                .eq('mapel_id', idUjianAktif);
-
-              if (answersError) {
-                showAlert('Sesi ujian dihapus, namun gagal membersihkan jawaban siswa: ' + answersError.message, 'danger');
-                return;
-              }
-              showAlert('Sesi ujian berhasil ditutup dan seluruh data jawaban siswa telah dibersihkan secara permanen (Reset Total).', 'success');
-            } else {
-              showAlert('Sesi ujian berhasil ditutup. Seluruh data pengerjaan siswa tetap aman disimpan di database cloud (dapat diekspor nanti).', 'success');
-            }
+            session.is_active = nextStatus;
+            localStorage.setItem('smartexam_active_session', JSON.stringify(session));
+            showAlert(`Sesi ujian berhasil ${nextStatus ? 'dibuka' : 'ditutup'} secara global.`, 'success');
+            loadActiveSession();
           } catch (err) {
             showAlert('Koneksi database cloud error: ' + err.message, 'danger');
-            return;
           }
         }
+      });
+    }
+
+    // 1. Download Backup JSON
+    const btnDownloadArchive = document.getElementById('btn-download-archive');
+    if (btnDownloadArchive) {
+      btnDownloadArchive.addEventListener('click', async () => {
+        if (!supabaseClient || !idUjianAktif) {
+          showAlert('Tidak ada koneksi database atau sesi ujian aktif.', 'danger');
+          return;
+        }
+
+        const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+        if (!activeSessionRaw) return;
+
+        try {
+          showAlert('Sedang memproses unduhan arsip cadangan...', 'info');
+
+          // Fetch all student answers for the active exam mapel_id
+          const { data: studentAnswers, error } = await supabaseClient
+            .from('jawaban_siswa')
+            .select('*')
+            .eq('mapel_id', idUjianAktif);
+
+          if (error) {
+            showAlert('Gagal menarik data dari database: ' + error.message, 'danger');
+            return;
+          }
+
+          let session = JSON.parse(activeSessionRaw);
+          session = deserializeSession(session);
+          const meta = session.metadata ? session.metadata : session;
+
+          // Build structured archive
+          const archivePayload = {
+            export_type: 'smartexam_archive',
+            export_date: new Date().toISOString(),
+            active_session: session,
+            jawaban_siswa: studentAnswers || []
+          };
+
+          // Build dynamic filename: arsip-[kelas]-[mapel_nama]-[tahun_ajaran].json
+          const classSanitized = (meta.kelas || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+          const mapelSanitized = (meta.mapel_nama || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+          const tahunSanitized = (meta.tahun || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+          const fileName = `arsip-${classSanitized}-${mapelSanitized}-${tahunSanitized}.json`.toLowerCase();
+
+          // Create JSON Blob and download
+          const jsonString = JSON.stringify(archivePayload, null, 2);
+          const blob = new Blob([jsonString], { type: 'application/json' });
+          const url = window.URL.createObjectURL(blob);
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.href = url;
+          downloadAnchor.download = fileName;
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          document.body.removeChild(downloadAnchor);
+          window.URL.revokeObjectURL(url);
+
+          showAlert(`Berhasil mengunduh arsip cadangan: ${fileName}`, 'success');
+        } catch (err) {
+          showAlert('Terjadi kesalahan saat mengunduh arsip: ' + err.message, 'danger');
+          console.error(err);
+        }
+      });
+    }
+
+    // 2. Upload & Buka File Arsip (Offline Reader)
+    const archiveFileInput = document.getElementById('archive-file-input');
+    const archiveTriggerBtn = document.getElementById('btn-upload-archive-trigger');
+
+    if (archiveTriggerBtn && archiveFileInput) {
+      archiveTriggerBtn.addEventListener('click', () => {
+        archiveFileInput.click();
+      });
+
+      archiveFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.name.endsWith('.json')) {
+          showAlert('Format berkas arsip harus berupa file .json!', 'danger');
+          archiveFileInput.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          try {
+            const archiveData = JSON.parse(event.target.result);
+
+            let sessionConfig = null;
+            let studentAnswers = null;
+
+            // Support both structured and raw array
+            if (archiveData && typeof archiveData === 'object' && !Array.isArray(archiveData)) {
+              if (archiveData.export_type === 'smartexam_archive') {
+                sessionConfig = archiveData.active_session;
+                studentAnswers = archiveData.jawaban_siswa;
+              } else {
+                sessionConfig = archiveData.active_session || null;
+                studentAnswers = archiveData.jawaban_siswa || null;
+              }
+            } else if (Array.isArray(archiveData)) {
+              studentAnswers = archiveData;
+            }
+
+            if (!studentAnswers || studentAnswers.length === 0) {
+              showAlert('File JSON arsip tidak valid atau tidak memiliki data siswa.', 'danger');
+              archiveFileInput.value = '';
+              return;
+            }
+
+            // Disconnect active realtime monitor to prevent cloud updates from overwriting offline view
+            if (realtimeChannel) {
+              realtimeChannel.unsubscribe();
+              realtimeChannel = null;
+            }
+
+            isOfflineArchiveMode = true;
+
+            // Show offline banner
+            const offlineBanner = document.getElementById('offline-archive-banner');
+            if (offlineBanner) offlineBanner.style.display = 'flex';
+
+            // Restore session config if present
+            if (sessionConfig) {
+              localStorage.setItem('smartexam_active_session', JSON.stringify(sessionConfig));
+              
+              idUjianAktif = sessionConfig.id;
+              sessionConfig = deserializeSession(sessionConfig);
+              const meta = sessionConfig.metadata ? sessionConfig.metadata : sessionConfig;
+
+              valMapelId.textContent = idUjianAktif || '-';
+              valMadrasah.textContent = meta.madrasah || '-';
+              valMapel.textContent = meta.mapel_nama || '-';
+              valKelas.textContent = meta.kelas || '-';
+              valSemesterTp.textContent = `${meta.semester || '-'} / ${meta.tahun || '-'}`;
+              valPaket.textContent = meta.paket || '-';
+              valGuru.textContent = meta.guru || '-';
+              valDurasi.textContent = meta.waktu_menit || '0';
+              valSoalPg.textContent = sessionConfig.soal_pg ? sessionConfig.soal_pg.length : 0;
+              valSoalUraian.textContent = sessionConfig.soal_uraian ? sessionConfig.soal_uraian.length : 0;
+
+              noSessionContent.style.display = 'none';
+              sessionActiveContent.style.display = 'block';
+            } else {
+              // Warning if no config embedded
+              const localSessionRaw = localStorage.getItem('smartexam_active_session');
+              if (localSessionRaw) {
+                const localSession = JSON.parse(localSessionRaw);
+                if (localSession.id !== studentAnswers[0].mapel_id) {
+                  showAlert('Peringatan: File arsip ini memiliki mapel_id "' + studentAnswers[0].mapel_id + '" yang tidak cocok dengan sesi aktif saat ini. Cetak rapot mungkin tidak menampilkan soal yang benar.', 'warning');
+                }
+              } else {
+                showAlert('Peringatan: Tidak ada sesi soal aktif terdeteksi. Silakan unggah berkas soal (.json) terlebih dahulu agar soal dan kunci jawaban rapot tercetak dengan benar.', 'warning');
+              }
+            }
+
+            // Populate students map
+            studentsMap = {};
+            studentAnswers.forEach(student => {
+              studentsMap[student.nisn] = student;
+            });
+
+            // Render table
+            renderMonitorTable();
+
+            // Style badge for offline mode
+            monitorCount.textContent = `${studentAnswers.length} Siswa (Arsip Offline)`;
+            monitorCount.className = 'badge';
+            monitorCount.style.backgroundColor = 'var(--secondary)';
+            monitorCount.style.color = '#ffffff';
+
+            // Enable Excel export for offline session
+            const btnExportExcel = document.getElementById('btn-export-excel');
+            if (btnExportExcel) btnExportExcel.disabled = false;
+
+            showAlert(`Berhasil membuka ${studentAnswers.length} data siswa dari file arsip secara offline.`, 'success');
+          } catch (err) {
+            showAlert('Gagal menguraikan file arsip JSON: ' + err.message, 'danger');
+            console.error(err);
+          }
+          archiveFileInput.value = '';
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    // 3. Exit Offline Mode
+    const btnExitOffline = document.getElementById('btn-exit-offline');
+    if (btnExitOffline) {
+      btnExitOffline.addEventListener('click', () => {
+        isOfflineArchiveMode = false;
+        document.getElementById('offline-archive-banner').style.display = 'none';
         
-        localStorage.removeItem('smartexam_active_session');
-        idUjianAktif = null;
+        // Restore badge style
+        monitorCount.className = 'badge badge-success';
+        monitorCount.style.backgroundColor = '';
+        monitorCount.style.color = '';
+
         loadActiveSession();
-      }
-    });
+        showAlert('Berhasil kembali ke Live Monitor mode.', 'success');
+      });
+    }
+
+    // 4. Hapus Permanen dari Cloud (Garda Terakhir)
+    const btnDeletePermanently = document.getElementById('btn-delete-permanently');
+    if (btnDeletePermanently) {
+      btnDeletePermanently.addEventListener('click', async () => {
+        if (!supabaseClient || !idUjianAktif) {
+          showAlert('Tidak ada koneksi database atau sesi ujian aktif.', 'danger');
+          return;
+        }
+
+        const confirm1 = confirm("PERINGATAN! Apakah Anda benar-benar sudah mendownload file arsip JSON? Tindakan ini akan menghapus seluruh data pengerjaan siswa di cloud secara permanen untuk sesi ini!");
+        if (!confirm1) return;
+
+        const confirm2 = confirm("Peringatan Terakhir! Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin ingin menghapus seluruh data pengerjaan siswa di cloud secara permanen untuk sesi ini?");
+        if (!confirm2) return;
+
+        try {
+          showAlert('Sedang menghapus seluruh data pengerjaan siswa di cloud...', 'info');
+          const { error } = await supabaseClient
+            .from('jawaban_siswa')
+            .delete()
+            .eq('mapel_id', idUjianAktif);
+
+          if (error) {
+            showAlert('Gagal menghapus data di cloud: ' + error.message, 'danger');
+            return;
+          }
+
+          // Clear local tracking state and table
+          studentsMap = {};
+          renderMonitorTable();
+          showAlert('Seluruh data pengerjaan siswa di cloud untuk sesi ini telah berhasil dihapus secara permanen.', 'success');
+        } catch (err) {
+          showAlert('Terjadi kesalahan saat menghapus data: ' + err.message, 'danger');
+          console.error(err);
+        }
+      });
+    }
 
     // File Drop & Select handlers
     uploadZone.addEventListener('dragover', (e) => {
@@ -594,7 +899,8 @@
                 paket: meta.paket,
                 waktu_menit: parseInt(meta.waktu_menit) || 90,
                 soal_pg: rawData.soal_pg,
-                soal_uraian: rawData.soal_uraian
+                soal_uraian: rawData.soal_uraian,
+                is_active: true
               });
 
             if (error) {
@@ -608,6 +914,7 @@
           }
         }
 
+        rawData.is_active = true;
         localStorage.setItem('smartexam_active_session', JSON.stringify(rawData));
         showAlert('Sesi soal ujian berhasil diunggah dan disinkronkan ke Supabase!', 'success');
         loadActiveSession();
@@ -770,27 +1077,38 @@
     const btnExportExcel = document.getElementById('btn-export-excel');
     if (btnExportExcel) {
       btnExportExcel.addEventListener('click', async () => {
-        if (!supabaseClient || !idUjianAktif) {
-          showAlert('Tidak ada koneksi database atau sesi ujian aktif.', 'danger');
+        if (!idUjianAktif) {
+          showAlert('Tidak ada sesi ujian aktif.', 'danger');
           return;
         }
 
         try {
-          // Show progress alert
-          showAlert('Sedang menarik data hasil ujian dari Supabase...', 'info');
+          let studentData = [];
+          if (isOfflineArchiveMode) {
+            studentData = Object.values(studentsMap);
+          } else {
+            if (!supabaseClient) {
+              showAlert('Koneksi Supabase tidak tersedia.', 'danger');
+              return;
+            }
+            // Show progress alert
+            showAlert('Sedang menarik data hasil ujian dari Supabase...', 'info');
 
-          // Fetch all student answers for the active exam mapel_id
-          const { data, error } = await supabaseClient
-            .from('jawaban_siswa')
-            .select('*')
-            .eq('mapel_id', idUjianAktif);
+            // Fetch all student answers for the active exam mapel_id
+            const { data, error } = await supabaseClient
+              .from('jawaban_siswa')
+              .select('*')
+              .eq('mapel_id', idUjianAktif);
 
-          if (error) {
-            showAlert('Gagal menarik data dari database: ' + error.message, 'danger');
-            return;
+            if (error) {
+              showAlert('Gagal menarik data dari database: ' + error.message, 'danger');
+              return;
+            }
+
+            studentData = data || [];
           }
 
-          if (!data || data.length === 0) {
+          if (!studentData || studentData.length === 0) {
             showAlert('Belum ada data jawaban siswa untuk diekspor.', 'info');
             return;
           }
@@ -809,7 +1127,7 @@
           }
 
           // Map data to the excel format
-          const excelData = data.map((student, idx) => {
+          const excelData = studentData.map((student, idx) => {
             // Calculate PG metrics
             let correctCount = 0;
             let unansweredCount = 0;
