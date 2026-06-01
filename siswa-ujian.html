@@ -450,8 +450,26 @@
     }
 
     // Initialize layout and parameters
-    function initExam() {
+    async function initExam() {
       if (!loadSessionData()) return;
+
+      // Force fetch active session from Supabase to ensure guru and semester metadata are always fresh
+      if (supabaseClient && activeSession && activeSession.id) {
+        try {
+          const { data, error } = await supabaseClient
+            .from('ujian_aktif')
+            .select('*')
+            .eq('id', activeSession.id)
+            .maybeSingle();
+
+          if (data) {
+            activeSession = data;
+            localStorage.setItem('smartexam_active_session', JSON.stringify(data));
+          }
+        } catch (e) {
+          console.error("Gagal sinkronisasi data aktif dari Supabase:", e);
+        }
+      }
 
       const meta = activeSession.metadata ? activeSession.metadata : activeSession;
 
