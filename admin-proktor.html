@@ -1514,12 +1514,14 @@
                    madrasahLower.includes('ma') || 
                    madrasahLower.includes('aliyah');
 
+        const isAlkhoir = madrasahLower.includes('alkhoir') || madrasahLower.includes('al-khoir') || madrasahLower.includes('al khoir');
+
         if (isMts && !isMa) {
-          selectedLogo = localStorage.getItem('smartexam_logo_mts');
+          selectedLogo = localStorage.getItem('smartexam_logo_mts') || (isAlkhoir ? 'logo mts Alkhoir.png' : null);
         } else if (isMa && !isMts) {
-          selectedLogo = localStorage.getItem('smartexam_logo_ma');
+          selectedLogo = localStorage.getItem('smartexam_logo_ma') || (isAlkhoir ? 'logo MA Alkhoir.jpg' : null);
         } else {
-          selectedLogo = localStorage.getItem('smartexam_logo_ma') || localStorage.getItem('smartexam_logo_mts');
+          selectedLogo = localStorage.getItem('smartexam_logo_ma') || localStorage.getItem('smartexam_logo_mts') || (isAlkhoir ? 'logo MA Alkhoir.jpg' : null);
         }
 
         let logoHtml = '';
