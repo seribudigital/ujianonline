@@ -1,4 +1,6 @@
 # 📘 Cetak Biru Teknis & Panduan Pengembang AmanaExam
+> **Versi Dokumen**: 2.0 — Terakhir diperbarui: 2 Juni 2026
+
 Dokumen ini disusun sebagai **Technical Blueprint** (Cetak Biru Teknis) resmi untuk AmanaExam—sebuah platform Computer Assisted Test (CAT) berbasis integritas, modern, dan mandiri untuk ekosistem Madrasah. Panduan ini dirancang untuk mempermudah proses pemeliharaan (*maintenance*), penelusuran bug (*debugging*), dan penambahan fitur baru di masa depan tanpa merusak sistem yang ada.
 
 ---
@@ -16,7 +18,9 @@ ujian-online/
 ├── siswa-ujian.html        # Halaman lembar pengerjaan ujian siswa
 ├── index.html              # Gerbang utama (melakukan auto-redirect ke siswa-login.html)
 ├── style.css               # Desain sistem global (tokens, layout, responsive grid, printing)
+├── README_DEVELOPER.md     # Dokumentasi teknis proyek (file ini)
 ├── js/
+│   ├── utils.js            # ★ Utilitas bersama (hashCode, shuffleArray, escapeHtml, deserializeSession)
 │   ├── config.js           # Konfigurasi Supabase, inisialisasi client, & utilitas UI Modal
 │   ├── logo-utils.js       # Utilitas rendering logo madrasah dinamis (SVG & Base64 fallbacks)
 │   ├── siswa-login.js      # Logika otentikasi NISN siswa & pre-flight check sesi aktif
@@ -26,11 +30,28 @@ ujian-online/
 ```
 
 ### Penjelasan Detail Berkas Logika (`js/`):
+*   **[utils.js](file:///d:/Guru/myweb/ujian%20online/js/utils.js)** ★: Modul utilitas bersama (*shared utilities*) yang digunakan oleh semua halaman. Berisi fungsi-fungsi yang sebelumnya terduplikasi di beberapa file:
+    *   `hashCode(str)` — Mengubah string (NISN) menjadi integer hash deterministik sebagai *seed* pengacakan.
+    *   `seededRandom(seed)` — Generator bilangan acak berbasis *Linear Congruential Generator (LCG)*.
+    *   `shuffleArray(array, seed)` — Algoritma Fisher-Yates Shuffle dengan *seed* kustom.
+    *   `deserializeSession(session)` — Membongkar kolom `tahun` yang berformat `tahunAjaran|semester|guru` menjadi properti terpisah.
+    *   `escapeHtml(str)` — Sanitasi input pengguna untuk mencegah serangan *Cross-Site Scripting (XSS)* saat merender teks melalui `innerHTML`.
 *   **[config.js](file:///d:/Guru/myweb/ujian%20online/js/config.js)**: Menyimpan `SUPABASE_URL` dan `SUPABASE_KEY` anon. Menyediakan fungsi `recreateSupabaseClient` yang meregenerasi instansi klien Supabase dengan *custom headers* khusus untuk RLS. Juga menyediakan UI dialog kustom (`showCustomAlert` dan `showCustomConfirm`) yang konsisten dengan tema warna madrasah (hijau Zamrud & emas Amber).
 *   **[logo-utils.js](file:///d:/Guru/myweb/ujian%20online/js/logo-utils.js)**: Berisi algoritma pendeteksi level madrasah (Mts / MA) untuk merender logo resmi Kementerian Agama atau logo kustom madrasah yang diunggah proktor, lengkap dengan gradasi perisai SVG dinamis.
 *   **[siswa-login.js](file:///d:/Guru/myweb/ujian%20online/js/siswa-login.js)**: Menangani pre-flight check sesi aktif di cloud. Jika sesi aktif ditemukan, NISN siswa divalidasi sepanjang 10-digit angka, kemudian membuat baris baru di tabel `jawaban_siswa` dan mengarahkan siswa ke lembar ujian.
-*   **[siswa-ujian.js](file:///d:/Guru/myweb/ujian%20online/js/siswa-ujian.js)**: Mengunci browser siswa dalam mode *Mandatory Fullscreen*, menangkap pelanggaran tab switch/blur (toleransi maksimal 2 kali), merender LaTeX menggunakan MathJax, melakukan pengacakan soal berbasis NISN, dan mengirimkan jawaban siswa secara asinkron (menggunakan debouncing 1 detik untuk soal esai guna menghindari spam API database).
-*   **[admin-proktor.js](file:///d:/Guru/myweb/ujian%20online/js/admin-proktor.js)**: Menangani otentikasi password proktor secara lokal (tersimpan di `sessionStorage` untuk privasi). Memfasilitasi unggah soal berbasis JSON, mendengarkan perubahan data siswa secara realtime melalui *Supabase Postgres Changes Channel*, mengunduh arsip backup terenkripsi, serta memfasilitasi penilaian esai manual dan pencetakan PDF rapot hasil ujian.
+*   **[siswa-ujian.js](file:///d:/Guru/myweb/ujian%20online/js/siswa-ujian.js)**: Mengunci browser siswa dalam mode *Mandatory Fullscreen*, menangkap pelanggaran tab switch/blur (toleransi maksimal 2 kali), merender LaTeX menggunakan MathJax, melakukan pengacakan soal berbasis NISN, mengirimkan jawaban siswa secara asinkron (menggunakan debouncing 1 detik untuk soal esai), dan memantau status koneksi internet secara realtime.
+*   **[admin-proktor.js](file:///d:/Guru/myweb/ujian%20online/js/admin-proktor.js)**: Menangani otentikasi password proktor secara lokal (tersimpan di `sessionStorage` untuk privasi). Memfasilitasi unggah soal berbasis JSON (dengan *loading state* visual), mendengarkan perubahan data siswa secara realtime melalui *Supabase Postgres Changes Channel*, mengunduh arsip backup terenkripsi, serta memfasilitasi penilaian esai manual dan pencetakan PDF rapot hasil ujian. Seluruh dialog konfirmasi menggunakan modal kustom (`showCustomConfirm`).
+
+### Urutan Pemuatan Script (Loading Order):
+Seluruh halaman HTML memuat script dalam urutan yang ketat untuk menjamin ketersediaan dependensi:
+```html
+<script src="js/utils.js"></script>         <!-- 1. Utilitas bersama (paling dasar) -->
+<script src="js/config.js"></script>         <!-- 2. Konfigurasi Supabase & UI helpers -->
+<script src="js/logo-utils.js"></script>     <!-- 3. Rendering logo (opsional per halaman) -->
+<script src="js/[halaman-spesifik].js"></script> <!-- 4. Logika bisnis halaman -->
+```
+
+> **Penting**: `utils.js` **harus** dimuat sebelum semua script lain karena menyediakan fungsi global (`hashCode`, `escapeHtml`, dll.) yang digunakan oleh `config.js`, `siswa-ujian.js`, dan `admin-proktor.js`.
 
 ---
 
@@ -81,6 +102,14 @@ AmanaExam mengadopsi prinsip *Local-First Cache*. Sesi pengerjaan siswa disimpan
 
 Saat siswa kembali terhubung ke internet, setiap klik jawaban PG akan langsung dikirim ke tabel `jawaban_siswa` di Supabase. Untuk jawaban uraian, fungsi `debounce` 1000ms menahan pengiriman hingga siswa berhenti mengetik untuk menekan konsumsi kuota API database.
 
+### Pemantauan Status Koneksi Internet (Network Monitor):
+Pada halaman ujian siswa (`siswa-ujian.html`), terdapat indikator koneksi realtime di navbar yang menampilkan status **🟢 Online** atau **🔴 Offline**. Indikator ini memanfaatkan event `online` dan `offline` dari browser:
+```javascript
+window.addEventListener('online', updateNetworkStatus);
+window.addEventListener('offline', updateNetworkStatus);
+```
+Fitur ini membantu siswa dan proktor mengetahui apakah jawaban berhasil tersinkronisasi ke database cloud atau tersimpan hanya secara lokal.
+
 ---
 
 ## 🛡️ 3. Sistem Keamanan & Row Level Security (RLS)
@@ -130,6 +159,29 @@ view_soal_siswa
 
 View ini secara dinamis menghapus properti kunci jawaban dari objek JSON soal sebelum dikirimkan ke web browser siswa. Dengan demikian, meskipun siswa mahir menggunakan Chrome DevTools (Inspect Element) untuk melihat lalu lintas jaringan API (*network tab*), mereka **tidak akan pernah bisa** menemukan kunci jawaban karena data tersebut memang tidak dikirim oleh server database.
 
+### Proteksi XSS (Cross-Site Scripting):
+Seluruh data yang dimasukkan oleh pengguna (nama siswa, NISN, nama mata pelajaran, nama guru, dll.) yang dirender melalui `innerHTML` telah disanitasi menggunakan fungsi `escapeHtml()` dari `utils.js`. Fungsi ini mengonversi karakter berbahaya (seperti `<`, `>`, `"`, `&`) menjadi entitas HTML yang aman:
+
+```javascript
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+// Contoh penggunaan di admin-proktor.js:
+`<td>${escapeHtml(student.nama_siswa)}</td>`  // ✅ AMAN
+`<td>${student.nama_siswa}</td>`               // ❌ RENTAN XSS
+```
+
+**Area yang dilindungi**:
+*   Tabel monitoring siswa di dashboard proktor (`renderMonitorTable`)
+*   Modal preview cetak nilai (`openPrintModal`)
+*   Dokumen rapot hasil ujian PDF (handler tombol cetak)
+
+> **⚠️ Catatan Pengembang**: Setiap kali menambahkan template literal baru yang merender data pengguna melalui `innerHTML`, **wajib** membungkus variabel dengan `escapeHtml()` untuk mencegah injeksi kode berbahaya.
+
 ---
 
 ## 🎲 4. Mekanisme Pengacakan Soal (Seeded Shuffling)
@@ -139,7 +191,7 @@ Untuk meminimalisir peluang kecurangan saling menyontek antar siswa yang duduk b
 ### Algoritma Fisher-Yates dengan Seed Kustom:
 Pengacakan standar seperti `Math.random()` tidak dapat digunakan karena akan mengacak ulang urutan setiap kali halaman dimuat kembali (*refresh*), yang akan membingungkan siswa dan menghapus jejak jawaban mereka. 
 
-Sebagai gantinya, AmanaExam menggunakan algoritma **Fisher-Yates Shuffle** yang dimodifikasi dengan generator bilangan acak berbasis *Linear Congruential Generator (LCG)* dengan *seed* kustom:
+Sebagai gantinya, AmanaExam menggunakan algoritma **Fisher-Yates Shuffle** yang dimodifikasi dengan generator bilangan acak berbasis *Linear Congruential Generator (LCG)* dengan *seed* kustom. Semua fungsi pengacakan tersentralisasi di **`js/utils.js`** untuk menghindari duplikasi kode:
 
 ```javascript
 // Mengubah NISN siswa menjadi nilai hash integer unik dan konsisten
@@ -177,7 +229,43 @@ Agar proktor dapat menilai jawaban siswa dengan adil dan mencetak laporan rapot 
 
 ---
 
-## 🛠️ 5. Panduan Perbaikan & Pengembangan Fitur Baru
+## ⚡ 5. Optimasi Performa & Aksesibilitas
+
+### Optimasi Pemuatan Font (Font Loading):
+Font Google (Inter & Outfit) dimuat melalui tag `<link>` di `<head>` HTML dengan strategi `preconnect` untuk menghilangkan latensi DNS dan koneksi TLS:
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@...&family=Outfit:wght@...&display=swap">
+```
+Sebelumnya, font dimuat via `@import` di CSS yang memblokir rendering halaman (*render-blocking*). Pendekatan baru ini memungkinkan browser mulai mengunduh font secara paralel dengan parsing CSS.
+
+### Pinning Versi CDN:
+Seluruh library CDN eksternal telah di-*pin* ke versi spesifik untuk mencegah *breaking changes* akibat pembaruan otomatis:
+| Library | Versi Pin |
+|---|---|
+| Lucide Icons | `@0.460.0` |
+| Supabase JS | `@2.49.4/dist/umd/supabase.min.js` |
+| MathJax | `@3` (stable channel) |
+
+### Optimasi Pemanggilan `lucide.createIcons()`:
+Pemanggilan `lucide.createIcons()` (yang men-*scan* seluruh DOM) telah dioptimasi:
+*   **Timer darurat**: Hanya dipanggil sekali saat waktu ujian < 5 menit (sebelumnya dipanggil setiap detik), menggunakan flag `dataset.urgencySet` dan parameter `{ nodes: [targetElement] }` untuk *scoped rendering*.
+*   **Rendering tabel monitor**: Tetap dipanggil setelah tabel di-*render* ulang karena tabel berisi ikon baru.
+
+### Aksesibilitas (Accessibility / a11y):
+Elemen-elemen interaktif telah ditingkatkan untuk kompatibilitas *screen reader* dan navigasi keyboard:
+| Elemen | Atribut | Nilai |
+|---|---|---|
+| Tombol Keluar Sesi (ujian) | `aria-label` | "Keluar dari sesi ujian" |
+| Tombol Toggle Password (proktor) | `aria-label` | "Tampilkan atau sembunyikan password" |
+| Tombol Tutup Modal Cetak | `aria-label` | "Tutup modal cetak" |
+| Overlay Warning Tab-Switch | `role` | "alert" |
+| Container Notifikasi Alert | `role`, `aria-live` | "alert", "polite" |
+
+---
+
+## 🛠️ 6. Panduan Perbaikan & Pengembangan Fitur Baru
 
 Bagian ini memuat langkah-langkah praktis bagi pengembang jika ingin melakukan pemeliharaan atau memperluas fungsionalitas aplikasi:
 
@@ -213,3 +301,50 @@ Jika ingin mendukung tipe soal selain PG dan Uraian:
     *   Pastikan fungsi penyimpanan data mengirim state ini secara asinkron ke kolom database yang sesuai (atau jadikan satu di JSON jawaban siswa).
 4.  **Halaman Proktor (`js/admin-proktor.js`)**:
     *   Perbarui fungsi penilaian dan rendering cetak rapot agar mengenali tipe `benarsalah` dan melakukan kalkulasi nilai akhir secara otomatis.
+
+### D. Menambahkan Fungsi Utilitas Baru
+Jika Anda perlu menambahkan fungsi utilitas yang digunakan oleh lebih dari satu halaman:
+1.  Tambahkan fungsi tersebut ke **`js/utils.js`**.
+2.  Pastikan fungsi dideklarasikan sebagai `function` (bukan `const` atau arrow function) agar ter-*hoist* dan tersedia secara global.
+3.  Tambahkan dokumentasi JSDoc di atas fungsi untuk memperjelas parameter dan return value.
+4.  **Jangan** menduplikasi fungsi di file JS lain—selalu impor dari `utils.js`.
+
+### E. Menampilkan Data Pengguna di innerHTML
+Saat menambahkan fitur baru yang menampilkan data dari input pengguna atau database ke HTML melalui template literal + `innerHTML`:
+1.  **Selalu** bungkus variabel dengan `escapeHtml()` dari `utils.js`.
+2.  Contoh yang **benar**:
+    ```javascript
+    container.innerHTML = `<p>Nama: ${escapeHtml(siswa.nama)}</p>`;
+    ```
+3.  Contoh yang **salah** (rentan XSS):
+    ```javascript
+    container.innerHTML = `<p>Nama: ${siswa.nama}</p>`;
+    ```
+
+---
+
+## 📝 7. Changelog (Riwayat Perubahan)
+
+### v2.0 — 2 Juni 2026
+*   **[BARU]** `js/utils.js` — Modul utilitas bersama untuk menghilangkan duplikasi kode (~70 baris kode duplikat dihapus).
+*   **[KEAMANAN]** Proteksi XSS via `escapeHtml()` pada 15+ template literal di `admin-proktor.js`.
+*   **[KEAMANAN]** Pinning versi CDN: Supabase `@2.49.4`, Lucide `@0.460.0`.
+*   **[UX]** Indikator status koneksi internet (🟢 Online / 🔴 Offline) di navbar halaman ujian.
+*   **[UX]** Semua dialog `confirm()` native diganti dengan `showCustomConfirm()` kustom yang konsisten.
+*   **[UX]** Loading state visual saat upload file soal JSON di dashboard proktor.
+*   **[PERFORMA]** Font dimuat via `<link rel="preconnect">` (sebelumnya `@import` render-blocking).
+*   **[PERFORMA]** `lucide.createIcons()` dioptimasi: hanya dipanggil sekali saat timer darurat, dengan *scoped rendering*.
+*   **[AKSESIBILITAS]** Penambahan `aria-label`, `role="alert"`, dan `aria-live="polite"` pada elemen interaktif.
+*   **[KODE]** `deserializeSession()` dipindahkan ke `utils.js` dan digunakan di 3 halaman (sebelumnya inline di 3 tempat).
+*   **[KODE]** Penghapusan `!important` pada CSS `.nav-num.ragu-*` dengan meningkatkan specificity selector.
+
+### v1.0 — 1 Juni 2026
+*   Rilis awal arsitektur modular: pemisahan JS ke folder `js/` dari HTML monolitik.
+*   Implementasi `config.js` terpusat untuk Supabase client.
+*   Implementasi `logo-utils.js` untuk rendering logo dinamis.
+*   Implementasi `showCustomAlert()` dan `showCustomConfirm()` kustom.
+*   Implementasi RLS (Row Level Security) dengan custom headers.
+*   Implementasi `view_soal_siswa` (Database View) untuk menyembunyikan kunci jawaban.
+*   Implementasi pengacakan soal Fisher-Yates dengan seed NISN.
+*   Implementasi tag `<meta name="robots" content="noindex, nofollow">`.
+*   Pembuatan `README_DEVELOPER.md` (dokumentasi teknis awal).

@@ -42,12 +42,7 @@ async function checkSessions() {
       activeSession = data;
       
       // Deserialize year, semester, and guru from the tahun column
-      if (activeSession.tahun && typeof activeSession.tahun === 'string' && activeSession.tahun.includes('|')) {
-        const parts = activeSession.tahun.split('|');
-        activeSession.tahun = parts[0] || '';
-        activeSession.semester = parts[1] || '-';
-        activeSession.guru = parts[2] || '-';
-      }
+      deserializeSession(activeSession);
 
       const meta = data;
       

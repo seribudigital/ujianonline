@@ -57,50 +57,8 @@ function showAlert(message, type = 'success') {
   lucide.createIcons();
 }
 
-// Deterministic hash code from string
-function hashCode(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
-// Seeded random number generator (Linear Congruential Generator)
-function seededRandom(seed) {
-  let m = 0x80000000;
-  let a = 1103515245;
-  let c = 12345;
-  let state = seed ? seed : Math.floor(Math.random() * (m - 1));
-  return function() {
-    state = (a * state + c) % m;
-    return state / (m - 1);
-  };
-}
-
-// Seeded Fisher-Yates shuffle
-function shuffleArray(array, seed) {
-  const rand = seededRandom(seed);
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function deserializeSession(session) {
-  if (!session) return null;
-  const meta = session.metadata ? session.metadata : session;
-  if (meta && meta.tahun && typeof meta.tahun === 'string' && meta.tahun.includes('|')) {
-    const parts = meta.tahun.split('|');
-    meta.tahun = parts[0] || '';
-    meta.semester = parts[1] || '-';
-    meta.guru = parts[2] || '-';
-  }
-  return session;
-}
+// Utility functions (hashCode, seededRandom, shuffleArray, deserializeSession, escapeHtml)
+// are now provided globally by utils.js
 
 // Load active session from Supabase (or localStorage fallback)
 async function loadActiveSession() {
@@ -243,7 +201,8 @@ if (btnToggleSession) {
     const actionText = nextStatus ? 'MEMBUKA' : 'MENUTUP';
     const confirmMsg = `Apakah Anda yakin ingin ${actionText} sesi ujian ini untuk siswa?\n\n(Jika ditutup, siswa baru yang mencoba login akan ditolak)`;
     
-    if (confirm(confirmMsg)) {
+    const confirmed = await showCustomConfirm(confirmMsg);
+    if (confirmed) {
       try {
         showAlert(`Sedang ${nextStatus ? 'membuka' : 'menutup'} sesi di database cloud...`, 'info');
         const { error } = await supabaseClient
@@ -479,10 +438,10 @@ if (btnDeletePermanently) {
       return;
     }
 
-    const confirm1 = confirm("PERINGATAN! Apakah Anda benar-benar sudah mendownload file arsip JSON? Tindakan ini akan menghapus seluruh data pengerjaan siswa di cloud secara permanen untuk sesi ini!");
+    const confirm1 = await showCustomConfirm("PERINGATAN! Apakah Anda benar-benar sudah mendownload file arsip JSON? Tindakan ini akan menghapus seluruh data pengerjaan siswa di cloud secara permanen untuk sesi ini!");
     if (!confirm1) return;
 
-    const confirm2 = confirm("Peringatan Terakhir! Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin ingin menghapus seluruh data pengerjaan siswa di cloud secara permanen untuk sesi ini?");
+    const confirm2 = await showCustomConfirm("Peringatan Terakhir! Tindakan ini tidak dapat dibatalkan. Apakah Anda yakin ingin menghapus seluruh data pengerjaan siswa di cloud secara permanen untuk sesi ini?");
     if (!confirm2) return;
 
     try {
@@ -556,6 +515,11 @@ function handleExamFile(file) {
       return;
     }
 
+    // Show upload loading state
+    const uploadBtn = uploadZone;
+    if (uploadBtn) uploadBtn.style.pointerEvents = 'none';
+    if (uploadBtn) uploadBtn.style.opacity = '0.6';
+
     const meta = rawData.metadata ? rawData.metadata : rawData;
     
     // Validation checklist
@@ -570,6 +534,8 @@ function handleExamFile(file) {
 
     if (missingKeys.length > 0) {
       showAlert(`File JSON tidak valid. Kunci berikut hilang pada metadata: ${missingKeys.join(', ')}`, 'danger');
+      if (uploadBtn) uploadBtn.style.pointerEvents = '';
+      if (uploadBtn) uploadBtn.style.opacity = '';
       return;
     }
 
@@ -600,11 +566,15 @@ function handleExamFile(file) {
 
         if (error) {
           showAlert('Gagal mengunggah soal ke Supabase: ' + error.message, 'danger');
+          if (uploadBtn) uploadBtn.style.pointerEvents = '';
+          if (uploadBtn) uploadBtn.style.opacity = '';
           return;
         }
       } catch (err) {
         showAlert('Koneksi database cloud error: ' + err.message, 'danger');
         console.error(err);
+        if (uploadBtn) uploadBtn.style.pointerEvents = '';
+        if (uploadBtn) uploadBtn.style.opacity = '';
         return;
       }
     }
@@ -612,6 +582,8 @@ function handleExamFile(file) {
     rawData.is_active = true;
     localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(rawData));
     showAlert('Sesi soal ujian berhasil diunggah dan disinkronkan ke Supabase!', 'success');
+    if (uploadBtn) uploadBtn.style.pointerEvents = '';
+    if (uploadBtn) uploadBtn.style.opacity = '';
     loadActiveSession();
   };
   
@@ -742,8 +714,8 @@ function renderMonitorTable() {
 
     tr.innerHTML = `
       <td>${index + 1}</td>
-      <td><code style="font-size: 0.85rem; color: var(--text-muted);">${student.nisn}</code></td>
-      <td style="font-weight: 600;">${student.nama_siswa}</td>
+      <td><code style="font-size: 0.85rem; color: var(--text-muted);">${escapeHtml(student.nisn)}</code></td>
+      <td style="font-weight: 600;">${escapeHtml(student.nama_siswa)}</td>
       <td>${statusBadge}</td>
       <td style="${violationStyle}">${student.violation_count} / 3</td>
       <td>${formatWaktu}</td>
@@ -997,13 +969,13 @@ window.openPrintModal = function(nisn) {
   contentDiv.innerHTML = `
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-body);">
       <div>
-        <div style="margin-bottom: 0.5rem;"><strong>Nama Siswa:</strong> ${student.nama_siswa}</div>
-        <div style="margin-bottom: 0.5rem;"><strong>NISN:</strong> ${student.nisn}</div>
-        <div style="margin-bottom: 0.5rem;"><strong>Mata Pelajaran:</strong> ${meta.mapel_nama}</div>
+        <div style="margin-bottom: 0.5rem;"><strong>Nama Siswa:</strong> ${escapeHtml(student.nama_siswa)}</div>
+        <div style="margin-bottom: 0.5rem;"><strong>NISN:</strong> ${escapeHtml(student.nisn)}</div>
+        <div style="margin-bottom: 0.5rem;"><strong>Mata Pelajaran:</strong> ${escapeHtml(meta.mapel_nama)}</div>
       </div>
       <div>
-        <div style="margin-bottom: 0.5rem;"><strong>Kelas:</strong> ${meta.kelas}</div>
-        <div style="margin-bottom: 0.5rem;"><strong>Semester:</strong> ${meta.semester || '-'}</div>
+        <div style="margin-bottom: 0.5rem;"><strong>Kelas:</strong> ${escapeHtml(meta.kelas)}</div>
+        <div style="margin-bottom: 0.5rem;"><strong>Semester:</strong> ${escapeHtml(meta.semester || '-')}</div>
         <div style="margin-bottom: 0.5rem;"><strong>Catatan Pelanggaran:</strong> <span style="color: ${student.violation_count > 0 ? 'var(--danger)' : 'var(--success)'}; font-weight: 700;">${student.violation_count} kali</span></div>
       </div>
     </div>
@@ -1242,7 +1214,7 @@ if (confirmPrintBtn) {
               Kementerian Agama Republik Indonesia
             </div>
             <div style="font-weight: 900; font-size: 1.35rem; text-transform: uppercase; margin: 0.2rem 0; letter-spacing: 0.5px;">
-              ${meta.madrasah || 'MADRASAH ALIYAH'}
+              ${escapeHtml(meta.madrasah || 'MADRASAH ALIYAH')}
             </div>
             <div style="font-size: 0.8rem; color: #333333; font-weight: 500;">
               Laporan Hasil Penilaian Akhir Semester Online (CBT)
@@ -1260,29 +1232,29 @@ if (confirmPrintBtn) {
             <div class="rapot-row">
               <span class="rapot-label">Nama Siswa</span>
               <span class="rapot-titikdua">:</span>
-              <span class="rapot-value" style="font-weight: bold; text-transform: uppercase;">${student.nama_siswa}</span>
+              <span class="rapot-value" style="font-weight: bold; text-transform: uppercase;">${escapeHtml(student.nama_siswa)}</span>
             </div>
             <div class="rapot-row">
               <span class="rapot-label">NISN Siswa</span>
               <span class="rapot-titikdua">:</span>
-              <span class="rapot-value">${student.nisn}</span>
+              <span class="rapot-value">${escapeHtml(student.nisn)}</span>
             </div>
             <div class="rapot-row">
               <span class="rapot-label">Kelas / Semester</span>
               <span class="rapot-titikdua">:</span>
-              <span class="rapot-value">${meta.kelas} / ${meta.semester}</span>
+              <span class="rapot-value">${escapeHtml(meta.kelas)} / ${escapeHtml(meta.semester)}</span>
             </div>
           </div>
           <div>
             <div class="rapot-row">
               <span class="rapot-label">Mata Pelajaran</span>
               <span class="rapot-titikdua">:</span>
-              <span class="rapot-value">${meta.mapel_nama}</span>
+              <span class="rapot-value">${escapeHtml(meta.mapel_nama)}</span>
             </div>
             <div class="rapot-row">
               <span class="rapot-label">Guru Pengampu</span>
               <span class="rapot-titikdua">:</span>
-              <span class="rapot-value">${meta.guru}</span>
+              <span class="rapot-value">${escapeHtml(meta.guru)}</span>
             </div>
             <div class="rapot-row">
               <span class="rapot-label">Tanggal Cetak</span>
@@ -1331,7 +1303,7 @@ if (confirmPrintBtn) {
           </div>
           <div style="text-align: center; width: 220px;">
             ${reportCity}, ${reportDate}<br>Guru Pengampu,
-            <div style="margin-top: 4rem; border-bottom: 1px solid #000000; font-weight: bold;">${meta.guru}</div>
+            <div style="margin-top: 4rem; border-bottom: 1px solid #000000; font-weight: bold;">${escapeHtml(meta.guru)}</div>
             NIP. ......................................
           </div>
         </div>
@@ -1550,9 +1522,10 @@ if (proktorLoginForm) {
 // Handle proktor logout
 const btnProktorLogout = document.getElementById('btn-proktor-logout');
 if (btnProktorLogout) {
-  btnProktorLogout.addEventListener('click', (e) => {
+  btnProktorLogout.addEventListener('click', async (e) => {
     e.preventDefault();
-    if (confirm("Apakah Anda yakin ingin keluar dari Dashboard Proktor?")) {
+    const confirmLogout = await showCustomConfirm("Apakah Anda yakin ingin keluar dari Dashboard Proktor?");
+    if (confirmLogout) {
       sessionStorage.removeItem('smartexam_proktor_logged_in');
       sessionStorage.removeItem('smartexam_proktor_password');
       window.location.reload();

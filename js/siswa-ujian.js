@@ -178,38 +178,7 @@ function loadSessionData() {
   }
 }
 
-// Deterministic hash code from string
-function hashCode(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
-// Seeded random number generator (Linear Congruential Generator)
-function seededRandom(seed) {
-  let m = 0x80000000;
-  let a = 1103515245;
-  let c = 12345;
-  let state = seed ? seed : Math.floor(Math.random() * (m - 1));
-  return function() {
-    state = (a * state + c) % m;
-    return state / (m - 1);
-  };
-}
-
-// Seeded Fisher-Yates shuffle
-function shuffleArray(array, seed) {
-  const rand = seededRandom(seed);
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(rand() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
+// hashCode, seededRandom, shuffleArray are now in utils.js
 
 // Initialize layout and parameters
 async function initExam() {
@@ -243,12 +212,7 @@ async function initExam() {
   const meta = activeSession.metadata ? activeSession.metadata : activeSession;
 
   // Deserialize year, semester, and guru from the tahun column if serialized
-  if (meta.tahun && typeof meta.tahun === 'string' && meta.tahun.includes('|')) {
-    const parts = meta.tahun.split('|');
-    meta.tahun = parts[0] || '';
-    meta.semester = parts[1] || '-';
-    meta.guru = parts[2] || '-';
-  }
+  deserializeSession(activeSession);
 
   // Populate Top bar
   studentNamePill.textContent = studentSession.nama;
@@ -350,6 +314,22 @@ async function initExam() {
   
   // Hook anti-cheating events (keyboard blocker, click blocker)
   hookAntiCheatKeyboards();
+
+  // Network status monitoring
+  const networkDot = document.getElementById('network-status-dot');
+  const networkText = document.getElementById('network-status-text');
+  function updateNetworkStatus() {
+    if (navigator.onLine) {
+      if (networkDot) { networkDot.style.backgroundColor = '#10b981'; }
+      if (networkText) { networkText.textContent = 'Online'; networkText.style.color = '#10b981'; }
+    } else {
+      if (networkDot) { networkDot.style.backgroundColor = '#ef4444'; }
+      if (networkText) { networkText.textContent = 'Offline'; networkText.style.color = '#ef4444'; }
+    }
+  }
+  window.addEventListener('online', updateNetworkStatus);
+  window.addEventListener('offline', updateNetworkStatus);
+  updateNetworkStatus();
 }
 
 // Start Exam click trigger (User gesture)
@@ -446,11 +426,12 @@ function startCountdown(durationMinutes) {
     timerSec.textContent = String(secs).padStart(2, '0');
 
     // Urgency color (under 5 minutes)
-    if (remainingSec < 300) {
+    if (remainingSec < 300 && !timerDisplay.dataset.urgencySet) {
       timerDisplay.style.color = 'var(--danger)';
       timerAlertLabel.style.color = 'var(--danger)';
       timerAlertLabel.innerHTML = '<i data-lucide="alert-triangle" style="width: 12px; height: 12px; vertical-align: middle;"></i> Waktu hampir habis!';
-      lucide.createIcons();
+      timerDisplay.dataset.urgencySet = 'true';
+      lucide.createIcons({ nodes: [timerAlertLabel] });
     }
   }
 

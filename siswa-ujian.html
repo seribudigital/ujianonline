@@ -7,6 +7,9 @@
   <title>AmanaExam | Lembar Ujian Siswa</title>
   <meta name="description" content="AmanaExam - Platform Modern Computer Assisted Test (CAT) Berbasis Integritas dan Kejujuran untuk Madrasah.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 6 C75 6 88 16 88 44 C88 71 50 92 50 92 C50 92 12 71 12 44 C12 16 25 6 50 6 Z' fill='%23059669'/%3E%3Cpath d='M50 12 C70 12 82 20 82 44 C82 67 50 85 50 85 C50 85 18 67 18 44 C18 20 30 12 50 12 Z' fill='none' stroke='%23F59E0B' stroke-width='2.5' opacity='0.8'/%3E%3Cpath d='M50 22 L74 31 L50 40 L26 31 Z' fill='%23F59E0B'/%3E%3Cpath d='M36 34.5 V42 C36 46 64 46 64 42 V34.5' fill='%23F59E0B'/%3E%3Cpath d='M50 31 L68 33.5 V43' fill='none' stroke='%23FFFFFF' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='68' cy='44.5' r='1.5' fill='%23FFFFFF'/%3E%3Cpath d='M32 54 C41 49.5 48 51.5 50 53.5 C52 51.5 59 49.5 68 54 L68 68 C59 63.5 52 65.5 50 67.5 C48 65.5 41 63.5 32 68 Z' fill='%23FFFFFF'/%3E%3Cline x1='50' y1='53.5' x2='50' y2='67.5' stroke='%23F59E0B' stroke-width='1.5'/%3E%3Cpath d='M42.5 59 L47.5 64 L57.5 53.5' fill='none' stroke='%23059669' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="style.css">
   
   <!-- MathJax Configuration and Script CDN for LaTeX rendering -->
@@ -26,7 +29,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@0.460.0"></script>
   <!-- Supabase JS Library CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -57,11 +60,15 @@
       AmanaExam<span>Online</span>
     </div>
     <div style="display: flex; align-items: center; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.65rem; background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-full); font-size: 0.7rem;" title="Status Koneksi Internet">
+        <span id="network-status-dot" style="width: 8px; height: 8px; border-radius: 50%; background-color: #10b981; display: inline-block; flex-shrink: 0;"></span>
+        <span id="network-status-text" style="font-weight: 600; color: #10b981;">Online</span>
+      </div>
       <div style="text-align: right;" id="student-pill">
         <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-dark);" id="student-name-pill">-</div>
         <div style="font-size: 0.75rem; color: var(--text-muted);" id="student-nisn-pill">NISN: -</div>
       </div>
-      <button class="btn btn-secondary" id="btn-logout" style="padding: 0.5rem 1rem; font-size: 0.8rem;">
+      <button class="btn btn-secondary" id="btn-logout" style="padding: 0.5rem 1rem; font-size: 0.8rem;" aria-label="Keluar dari sesi ujian">
         <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Keluar Sesi
       </button>
     </div>
@@ -283,7 +290,7 @@
 
 
   <!-- Tab switch warning modal popup -->
-  <div class="warning-modal-overlay" id="warning-modal-overlay" style="display: none;">
+  <div class="warning-modal-overlay" id="warning-modal-overlay" style="display: none;" role="alert">
     <div class="warning-modal-card">
       <div style="width: 60px; height: 60px; background-color: #fffbeb; color: var(--warning); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; border: 2px solid var(--warning);">
         <i data-lucide="alert-octagon" style="width: 30px; height: 30px;"></i>
@@ -349,6 +356,7 @@
     </div>
   </div>
 
+  <script src="js/utils.js"></script>
   <script src="js/config.js"></script>
   <script src="js/logo-utils.js"></script>
   <script src="js/siswa-ujian.js"></script>

@@ -1,5 +1,4 @@
-/* Import modern, readable fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+/* Fonts are loaded via <link> tags in HTML <head> for optimal performance */
 
 :root {
   /* Elegant Color Palette - AmanaExam Green and Gold Theme */
@@ -692,16 +691,16 @@ a:hover {
   color: #ffffff;
 }
 
-.nav-num.ragu-answered {
-  background-color: #f59e0b !important;
-  border-color: #d97706 !important;
-  color: #ffffff !important;
+button.nav-num.ragu-answered {
+  background-color: #f59e0b;
+  border-color: #d97706;
+  color: #ffffff;
 }
 
-.nav-num.ragu-empty {
-  background-color: #fffbeb !important;
-  border: 1px dashed #f59e0b !important;
-  color: #b45309 !important;
+button.nav-num.ragu-empty {
+  background-color: #fffbeb;
+  border: 1px dashed #f59e0b;
+  color: #b45309;
 }
 
 .nav-num.uraian-type {

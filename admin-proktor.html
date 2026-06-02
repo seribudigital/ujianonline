@@ -7,6 +7,9 @@
   <title>AmanaExam | Proktor Dashboard</title>
   <meta name="description" content="AmanaExam - Platform Modern Computer Assisted Test (CAT) Berbasis Integritas dan Kejujuran untuk Madrasah.">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 6 C75 6 88 16 88 44 C88 71 50 92 50 92 C50 92 12 71 12 44 C12 16 25 6 50 6 Z' fill='%23059669'/%3E%3Cpath d='M50 12 C70 12 82 20 82 44 C82 67 50 85 50 85 C50 85 18 67 18 44 C18 20 30 12 50 12 Z' fill='none' stroke='%23F59E0B' stroke-width='2.5' opacity='0.8'/%3E%3Cpath d='M50 22 L74 31 L50 40 L26 31 Z' fill='%23F59E0B'/%3E%3Cpath d='M36 34.5 V42 C36 46 64 46 64 42 V34.5' fill='%23F59E0B'/%3E%3Cpath d='M50 31 L68 33.5 V43' fill='none' stroke='%23FFFFFF' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='68' cy='44.5' r='1.5' fill='%23FFFFFF'/%3E%3Cpath d='M32 54 C41 49.5 48 51.5 50 53.5 C52 51.5 59 49.5 68 54 L68 68 C59 63.5 52 65.5 50 67.5 C48 65.5 41 63.5 32 68 Z' fill='%23FFFFFF'/%3E%3Cline x1='50' y1='53.5' x2='50' y2='67.5' stroke='%23F59E0B' stroke-width='1.5'/%3E%3Cpath d='M42.5 59 L47.5 64 L57.5 53.5' fill='none' stroke='%23059669' stroke-width='4.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="style.css">
   
   <!-- MathJax Configuration and Script CDN for LaTeX rendering -->
@@ -26,7 +29,7 @@
   <!-- Lucide Icons for premium feel -->
   <script src="https://unpkg.com/lucide@0.460.0"></script>
   <!-- Supabase JS Library CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
   <!-- SheetJS for Excel exports -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   
@@ -211,7 +214,7 @@
           <label for="proktor-password" class="gatekeeper-label">Password Keamanan Proktor</label>
           <div class="gatekeeper-input-wrapper">
             <input type="password" id="proktor-password" class="gatekeeper-input" placeholder="Masukkan password" required autocomplete="current-password">
-            <button type="button" id="gatekeeper-toggle-pwd" class="gatekeeper-toggle-pwd">
+            <button type="button" id="gatekeeper-toggle-pwd" class="gatekeeper-toggle-pwd" aria-label="Tampilkan atau sembunyikan password">
               <i data-lucide="eye" style="width: 20px; height: 20px;"></i>
             </button>
           </div>
@@ -267,7 +270,7 @@
     </div>
 
     <!-- Alert Container -->
-    <div id="alert-container"></div>
+    <div id="alert-container" role="alert" aria-live="polite"></div>
 
     <div class="dashboard-grid">
       <!-- Left Column: Upload Area -->
@@ -547,7 +550,7 @@
         <h2 style="font-family: var(--font-display); color: var(--text-dark); margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.35rem;">
           <i data-lucide="printer" style="color: var(--primary);"></i> Cetak Rapot Hasil Ujian
         </h2>
-        <button id="btn-close-print-modal" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.75rem; font-weight: bold; line-height: 1;">&times;</button>
+        <button id="btn-close-print-modal" aria-label="Tutup modal cetak" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.75rem; font-weight: bold; line-height: 1;">&times;</button>
       </div>
 
       <div id="print-modal-content">
@@ -566,6 +569,7 @@
   <!-- Hidden container for printing -->
   <div id="print-report-container"></div>
 
+  <script src="js/utils.js"></script>
   <script src="js/config.js"></script>
   <script src="js/logo-utils.js"></script>
   <script src="js/admin-proktor.js"></script>
