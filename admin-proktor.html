@@ -272,7 +272,15 @@
     <!-- Alert Container -->
     <div id="alert-container" role="alert" aria-live="polite"></div>
 
-    <div class="dashboard-grid">
+    <!-- Tab Navigation -->
+    <div class="tabs-container" style="margin-bottom: 1.5rem; display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+      <button id="btn-tab-monitor" class="tab-btn active" style="background: none; border: none; font-size: 1rem; font-weight: 600; color: var(--primary); padding: 0.5rem 1rem; cursor: pointer; border-bottom: 3px solid var(--primary);">Monitor Ujian Aktif</button>
+      <button id="btn-tab-history" class="tab-btn" style="background: none; border: none; font-size: 1rem; font-weight: 600; color: var(--text-muted); padding: 0.5rem 1rem; cursor: pointer; border-bottom: 3px solid transparent;">Riwayat Ujian Cloud</button>
+    </div>
+
+    <!-- TAB: Live Monitor (Active) -->
+    <div id="tab-monitor">
+      <div class="dashboard-grid">
       <!-- Left Column: Upload Area -->
       <div>
         <div class="card card-hover" style="margin-bottom: 1.5rem;">
@@ -505,7 +513,7 @@
       <div id="offline-archive-banner" style="display: none; background-color: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; align-items: center; justify-content: space-between; gap: 1rem;">
         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
           <i data-lucide="info" style="color: var(--secondary); flex-shrink: 0; width: 18px; height: 18px;"></i>
-          <span><strong>Mode Offline:</strong> Anda sedang membuka berkas arsip cadangan secara lokal. Sinkronisasi cloud ditangguhkan.</span>
+          <span><strong>Mode Offline:</strong> Menampilkan Data Arsip Lampau (Read-Only). Sinkronisasi cloud ditangguhkan.</span>
         </div>
         <button class="btn" id="btn-exit-offline" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; background-color: #ffffff; border: 1px solid #c7d2fe; color: #3730a3; font-weight: 600;">
           <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Kembali ke Live Monitor
@@ -535,7 +543,48 @@
           </tbody>
         </table>
       </div>
+      </div>
     </div>
+    <!-- END TAB: Live Monitor -->
+
+    <!-- TAB: Riwayat Ujian -->
+    <div id="tab-history" style="display: none;">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+          <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="history" style="color: var(--primary);"></i> Daftar Sesi Ujian di Cloud
+          </h3>
+          <button class="btn btn-secondary" id="btn-refresh-history" style="display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i> Muat Ulang
+          </button>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 50px;">No</th>
+                <th>Mapel ID</th>
+                <th>Madrasah</th>
+                <th>Mata Pelajaran</th>
+                <th>Kelas</th>
+                <th>Status</th>
+                <th style="width: 250px; text-align: center;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+                  <i data-lucide="loader" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted); animation: spin 2s linear infinite;"></i>
+                  Memuat data riwayat...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- END TAB: Riwayat Ujian -->
 
     <!-- Footer -->
     <footer class="footer">
@@ -562,6 +611,27 @@
         <button class="btn btn-primary" id="btn-confirm-print" style="background: linear-gradient(135deg, var(--primary), var(--primary-hover)); display: flex; align-items: center; gap: 0.5rem;">
           <i data-lucide="printer" style="width: 16px; height: 16px;"></i> Cetak Laporan (PDF)
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Konfirmasi Hapus dengan Password -->
+  <div class="warning-modal-overlay" id="delete-history-modal" style="display: none; align-items: center; justify-content: center; z-index: 2000;">
+    <div class="warning-modal-card" style="max-width: 400px; width: 95%; text-align: left; padding: 2rem; border-color: var(--danger);">
+      <h3 style="margin-top: 0; color: var(--danger); display: flex; align-items: center; gap: 0.5rem;">
+        <i data-lucide="alert-triangle"></i> Konfirmasi Hapus
+      </h3>
+      <p style="font-size: 0.9rem; color: var(--text-body); margin-bottom: 1.5rem;">
+        Anda akan menghapus sesi ujian ini beserta <strong>seluruh data jawaban siswa</strong> yang terkait secara permanen dari Cloud.
+      </p>
+      <div style="margin-bottom: 1.5rem;">
+        <label for="delete-password-input" style="font-size: 0.8rem; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 0.5rem;">Masukkan Password Proktor:</label>
+        <input type="password" id="delete-password-input" placeholder="Password (amana123)" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+        <p id="delete-error-msg" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.5rem; display: none;">Password salah!</p>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+        <button class="btn btn-secondary" id="btn-cancel-delete">Batal</button>
+        <button class="btn btn-danger" id="btn-confirm-delete">Hapus Permanen</button>
       </div>
     </div>
   </div>

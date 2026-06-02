@@ -1533,6 +1533,333 @@ if (btnProktorLogout) {
   });
 }
 
+// ==========================================
+// HISTORY TAB & LOGIC
+// ==========================================
+const btnTabMonitor = document.getElementById('btn-tab-monitor');
+const btnTabHistory = document.getElementById('btn-tab-history');
+const tabMonitor = document.getElementById('tab-monitor');
+const tabHistory = document.getElementById('tab-history');
+
+if (btnTabMonitor && btnTabHistory) {
+  btnTabMonitor.addEventListener('click', () => {
+    btnTabMonitor.classList.add('active');
+    btnTabMonitor.style.borderBottomColor = 'var(--primary)';
+    btnTabMonitor.style.color = 'var(--primary)';
+    
+    btnTabHistory.classList.remove('active');
+    btnTabHistory.style.borderBottomColor = 'transparent';
+    btnTabHistory.style.color = 'var(--text-muted)';
+    
+    if(tabMonitor) tabMonitor.style.display = 'block';
+    if(tabHistory) tabHistory.style.display = 'none';
+  });
+
+  btnTabHistory.addEventListener('click', () => {
+    btnTabHistory.classList.add('active');
+    btnTabHistory.style.borderBottomColor = 'var(--primary)';
+    btnTabHistory.style.color = 'var(--primary)';
+    
+    btnTabMonitor.classList.remove('active');
+    btnTabMonitor.style.borderBottomColor = 'transparent';
+    btnTabMonitor.style.color = 'var(--text-muted)';
+    
+    if(tabMonitor) tabMonitor.style.display = 'none';
+    if(tabHistory) tabHistory.style.display = 'block';
+    
+    loadHistorySessions();
+  });
+}
+
+const historyTableBody = document.getElementById('history-table-body');
+const btnRefreshHistory = document.getElementById('btn-refresh-history');
+
+if (btnRefreshHistory) {
+  btnRefreshHistory.addEventListener('click', loadHistorySessions);
+}
+
+async function loadHistorySessions() {
+  if (!supabaseClient) {
+    showAlert('Koneksi Supabase tidak tersedia.', 'danger');
+    return;
+  }
+  
+  if(historyTableBody) {
+    historyTableBody.innerHTML = `<tr>
+      <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+        <i data-lucide="loader" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted); animation: spin 2s linear infinite;"></i>
+        Memuat data riwayat...
+      </td>
+    </tr>`;
+  }
+  lucide.createIcons();
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('ujian_aktif')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      if(historyTableBody) historyTableBody.innerHTML = `<tr><td colspan="7" class="text-center" style="color: var(--danger); text-align: center; padding: 1rem;">Gagal memuat: ${escapeHtml(error.message)}</td></tr>`;
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      if(historyTableBody) historyTableBody.innerHTML = `<tr><td colspan="7" class="text-center" style="color: var(--text-muted); text-align: center; padding: 2rem;">Belum ada riwayat ujian di cloud.</td></tr>`;
+      return;
+    }
+
+    if(historyTableBody) historyTableBody.innerHTML = '';
+    data.forEach((session, index) => {
+      const tr = document.createElement('tr');
+      const statusText = session.is_active ? '<span class="badge badge-success" style="background-color: #d1fae5; color: #065f46;">Aktif</span>' : '<span class="badge badge-warning" style="background-color: #fef3c7; color: #92400e;">Ditutup</span>';
+      const mapelStr = escapeHtml(session.id);
+      
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td><code style="font-size: 0.85rem; color: var(--text-muted);">${mapelStr}</code></td>
+        <td>${escapeHtml(session.madrasah || '-')}</td>
+        <td><strong>${escapeHtml(session.mapel_nama || '-')}</strong></td>
+        <td>${escapeHtml(session.kelas || '-')}</td>
+        <td>${statusText}</td>
+        <td style="text-align: center;">
+          <div style="display: flex; gap: 0.25rem; justify-content: center;">
+            <button class="btn btn-secondary" onclick="viewHistorySession('${mapelStr}')" title="Lihat Data Siswa" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;"><i data-lucide="eye" style="width: 14px; height: 14px;"></i></button>
+            <button class="btn btn-secondary" onclick="downloadHistorySession('${mapelStr}')" title="Download JSON Arsip" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;"><i data-lucide="download" style="width: 14px; height: 14px;"></i></button>
+            <button class="btn btn-danger" onclick="confirmDeleteHistory('${mapelStr}')" title="Hapus Sesi Permanen" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;"><i data-lucide="trash-2" style="width: 14px; height: 14px;"></i></button>
+          </div>
+        </td>
+      `;
+      if(historyTableBody) historyTableBody.appendChild(tr);
+    });
+    lucide.createIcons();
+  } catch (err) {
+    if(historyTableBody) historyTableBody.innerHTML = `<tr><td colspan="7" class="text-center" style="color: var(--danger); text-align: center; padding: 1rem;">Error: ${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+window.viewHistorySession = async function(mapelId) {
+  if (!supabaseClient) return;
+  
+  showAlert('Sedang memuat data arsip siswa untuk ' + escapeHtml(mapelId) + '...', 'info');
+  
+  try {
+    const { data: sessionData, error: sessionErr } = await supabaseClient
+      .from('ujian_aktif')
+      .select('*')
+      .eq('id', mapelId)
+      .single();
+
+    if (sessionErr) throw sessionErr;
+
+    const { data: answersData, error: ansErr } = await supabaseClient
+      .from('jawaban_siswa')
+      .select('*')
+      .eq('mapel_id', mapelId);
+
+    if (ansErr) throw ansErr;
+
+    // Switch to tab monitor
+    if(btnTabMonitor) btnTabMonitor.click();
+    
+    // Unsubscribe from active realtime if any
+    if (realtimeChannel) {
+      realtimeChannel.unsubscribe();
+      realtimeChannel = null;
+    }
+
+    isOfflineArchiveMode = true;
+    
+    // Show banner
+    const offlineBanner = document.getElementById('offline-archive-banner');
+    if (offlineBanner) offlineBanner.style.display = 'flex';
+
+    // Populate data
+    let sessionConfig = sessionData;
+    idUjianAktif = sessionConfig.id; // temporary override
+    
+    // Populate session info UI
+    valMapelId.textContent = escapeHtml(idUjianAktif || '-');
+    valMadrasah.textContent = escapeHtml(sessionConfig.madrasah || '-');
+    valMapel.textContent = escapeHtml(sessionConfig.mapel_nama || '-');
+    valKelas.textContent = escapeHtml(sessionConfig.kelas || '-');
+    const tahunStr = sessionConfig.tahun || '||';
+    const tahunParts = tahunStr.split('|');
+    valSemesterTp.textContent = escapeHtml(`${tahunParts[1] || '-'} / ${tahunParts[0] || '-'}`);
+    valPaket.textContent = escapeHtml(sessionConfig.paket || '-');
+    valGuru.textContent = escapeHtml(tahunParts[2] || '-');
+    valDurasi.textContent = escapeHtml(sessionConfig.waktu_menit || '0');
+    valSoalPg.textContent = sessionConfig.soal_pg ? sessionConfig.soal_pg.length : 0;
+    valSoalUraian.textContent = sessionConfig.soal_uraian ? sessionConfig.soal_uraian.length : 0;
+
+    noSessionContent.style.display = 'none';
+    sessionActiveContent.style.display = 'block';
+
+    studentsMap = {};
+    if (answersData) {
+      answersData.forEach(student => {
+        studentsMap[student.nisn] = student;
+      });
+    }
+
+    renderMonitorTable();
+
+    monitorCount.textContent = `${answersData ? answersData.length : 0} Siswa (Arsip Offline)`;
+    monitorCount.className = 'badge';
+    monitorCount.style.backgroundColor = 'var(--secondary)';
+    monitorCount.style.color = '#ffffff';
+
+    const btnExportExcel = document.getElementById('btn-export-excel');
+    if (btnExportExcel) btnExportExcel.disabled = false;
+
+    // Build temporary localStorage config for offline mode print
+    let meta = {
+      madrasah: sessionConfig.madrasah,
+      mapel_nama: sessionConfig.mapel_nama,
+      kelas: sessionConfig.kelas,
+      semester: tahunParts[1] || '',
+      tahun: tahunParts[0] || '',
+      guru: tahunParts[2] || '',
+      paket: sessionConfig.paket,
+      waktu_menit: sessionConfig.waktu_menit
+    };
+    let localConfig = {
+      id: idUjianAktif,
+      metadata: meta,
+      soal_pg: sessionConfig.soal_pg,
+      soal_uraian: sessionConfig.soal_uraian,
+      is_active: sessionConfig.is_active
+    };
+    localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(localConfig));
+    
+    showAlert('Berhasil memuat ' + (answersData ? answersData.length : 0) + ' data siswa dalam Mode Arsip.', 'success');
+
+  } catch (err) {
+    showAlert('Gagal memuat arsip: ' + escapeHtml(err.message), 'danger');
+  }
+}
+
+window.downloadHistorySession = async function(mapelId) {
+  if (!supabaseClient) return;
+  showAlert('Sedang memproses unduhan arsip ' + escapeHtml(mapelId) + '...', 'info');
+
+  try {
+    const { data: sessionData, error: sessionErr } = await supabaseClient
+      .from('ujian_aktif')
+      .select('*')
+      .eq('id', mapelId)
+      .single();
+
+    if (sessionErr) throw sessionErr;
+
+    const { data: answersData, error: ansErr } = await supabaseClient
+      .from('jawaban_siswa')
+      .select('*')
+      .eq('mapel_id', mapelId);
+
+    if (ansErr) throw ansErr;
+
+    const archivePayload = {
+      export_type: 'smartexam_archive',
+      export_date: new Date().toISOString(),
+      active_session: sessionData,
+      jawaban_siswa: answersData || []
+    };
+
+    const classSanitized = (sessionData.kelas || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+    const mapelSanitized = (sessionData.mapel_nama || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+    const tahunStr = sessionData.tahun || '||';
+    const tahunParts = tahunStr.split('|');
+    const tahunSanitized = (tahunParts[0] || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+    const fileName = `arsip-${classSanitized}-${mapelSanitized}-${tahunSanitized}.json`.toLowerCase();
+
+    const jsonString = JSON.stringify(archivePayload, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.href = url;
+    downloadAnchor.download = fileName;
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    document.body.removeChild(downloadAnchor);
+    window.URL.revokeObjectURL(url);
+
+    showAlert(`Berhasil mengunduh arsip cadangan: ${fileName}`, 'success');
+  } catch (err) {
+    showAlert('Terjadi kesalahan saat mengunduh arsip: ' + escapeHtml(err.message), 'danger');
+  }
+}
+
+let mapelToDelete = null;
+const deleteHistoryModal = document.getElementById('delete-history-modal');
+const btnCancelDelete = document.getElementById('btn-cancel-delete');
+const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+const deletePasswordInput = document.getElementById('delete-password-input');
+const deleteErrorMsg = document.getElementById('delete-error-msg');
+
+window.confirmDeleteHistory = function(mapelId) {
+  mapelToDelete = mapelId;
+  if(deletePasswordInput) deletePasswordInput.value = '';
+  if(deleteErrorMsg) deleteErrorMsg.style.display = 'none';
+  if(deleteHistoryModal) deleteHistoryModal.style.display = 'flex';
+}
+
+if (btnCancelDelete) {
+  btnCancelDelete.addEventListener('click', () => {
+    if(deleteHistoryModal) deleteHistoryModal.style.display = 'none';
+    mapelToDelete = null;
+  });
+}
+
+if (btnConfirmDelete) {
+  btnConfirmDelete.addEventListener('click', async () => {
+    const pwd = deletePasswordInput ? deletePasswordInput.value : '';
+    if (pwd !== 'amana123') {
+      if(deleteErrorMsg) deleteErrorMsg.style.display = 'block';
+      if(deletePasswordInput) deletePasswordInput.focus();
+      return;
+    }
+
+    if(deleteErrorMsg) deleteErrorMsg.style.display = 'none';
+    if (!mapelToDelete || !supabaseClient) return;
+
+    btnConfirmDelete.disabled = true;
+    btnConfirmDelete.innerHTML = '<i data-lucide="loader" style="width: 14px; height: 14px; animation: spin 2s linear infinite;"></i> Menghapus...';
+    lucide.createIcons();
+
+    try {
+      // Hapus data jawaban siswa
+      await supabaseClient.from('jawaban_siswa').delete().eq('mapel_id', mapelToDelete);
+      
+      // Hapus sesi ujian
+      const { error } = await supabaseClient.from('ujian_aktif').delete().eq('id', mapelToDelete);
+
+      if (error) throw error;
+
+      showAlert('Sesi ujian berhasil dihapus permanen.', 'success');
+      if(deleteHistoryModal) deleteHistoryModal.style.display = 'none';
+      loadHistorySessions();
+      
+      // Jika sesi yang dihapus sedang dibuka (mode offline) atau adalah sesi aktif, reset
+      if (idUjianAktif === mapelToDelete) {
+          isOfflineArchiveMode = false;
+          const offlineBanner = document.getElementById('offline-archive-banner');
+          if (offlineBanner) offlineBanner.style.display = 'none';
+          localStorage.removeItem('smartexam_proktor_active_session');
+          loadActiveSession();
+      }
+
+    } catch (err) {
+      showAlert('Gagal menghapus sesi: ' + escapeHtml(err.message), 'danger');
+    } finally {
+      btnConfirmDelete.disabled = false;
+      btnConfirmDelete.innerHTML = 'Hapus Permanen';
+      mapelToDelete = null;
+    }
+  });
+}
+
 // Init load on launch
 initPrintSettings();
 if (sessionStorage.getItem('smartexam_proktor_logged_in') === 'true') {
