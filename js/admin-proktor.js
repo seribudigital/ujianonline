@@ -57,6 +57,39 @@ function showAlert(message, type = 'success') {
   lucide.createIcons();
 }
 
+// Deterministic hash code from string
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+// Seeded random number generator (Linear Congruential Generator)
+function seededRandom(seed) {
+  let m = 0x80000000;
+  let a = 1103515245;
+  let c = 12345;
+  let state = seed ? seed : Math.floor(Math.random() * (m - 1));
+  return function() {
+    state = (a * state + c) % m;
+    return state / (m - 1);
+  };
+}
+
+// Seeded Fisher-Yates shuffle
+function shuffleArray(array, seed) {
+  const rand = seededRandom(seed);
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function deserializeSession(session) {
   if (!session) return null;
   const meta = session.metadata ? session.metadata : session;
@@ -895,8 +928,17 @@ window.openPrintModal = function(nisn) {
 
   const session = JSON.parse(activeSessionRaw);
   const meta = session.metadata || session;
-  const questionsPG = session.soal_pg || [];
-  const questionsUraian = session.soal_uraian || [];
+  let questionsPG = [...(session.soal_pg || [])];
+  let questionsUraian = [...(session.soal_uraian || [])];
+
+  const paketVal = String(meta.paket || '');
+  const isAcak = /b|acak|random/i.test(paketVal);
+
+  if (isAcak && student.nisn) {
+    const seed = hashCode(student.nisn);
+    questionsPG = shuffleArray(questionsPG, seed);
+    questionsUraian = shuffleArray(questionsUraian, seed);
+  }
 
   // Calculate PG score and metrics
   let correctCount = 0;
@@ -1042,8 +1084,17 @@ if (confirmPrintBtn) {
     const activeSessionRaw = localStorage.getItem('smartexam_active_session');
     const session = JSON.parse(activeSessionRaw);
     const meta = session.metadata || session;
-    const questionsPG = session.soal_pg || [];
-    const questionsUraian = session.soal_uraian || [];
+    let questionsPG = [...(session.soal_pg || [])];
+    let questionsUraian = [...(session.soal_uraian || [])];
+
+    const paketVal = String(meta.paket || '');
+    const isAcak = /b|acak|random/i.test(paketVal);
+
+    if (isAcak && student.nisn) {
+      const seed = hashCode(student.nisn);
+      questionsPG = shuffleArray(questionsPG, seed);
+      questionsUraian = shuffleArray(questionsUraian, seed);
+    }
 
     // Calculate PG score and metrics
     let correctCount = 0;
@@ -1057,8 +1108,34 @@ if (confirmPrintBtn) {
       
       let isCorrect = false;
       let statusBadge = '';
-      let studentAnsText = studentAns ? `${studentAns}. ${q.pilihan[studentAns] || ''}` : '(Tidak Dijawab)';
-      let correctAnsText = correctAns ? `${correctAns}. ${q.pilihan[correctAns] || ''}` : '-';
+      
+      // Determine display text and choice letter for the report
+      let studentAnsText = '(Tidak Dijawab)';
+      let correctAnsText = '-';
+
+      if (isAcak && student.nisn) {
+        const choiceSeed = hashCode(student.nisn + '_' + q.id);
+        let pilihanKeys = Object.keys(q.pilihan || {}).sort();
+        pilihanKeys = shuffleArray(pilihanKeys, choiceSeed);
+
+        if (studentAns) {
+          const displayIdx = pilihanKeys.indexOf(studentAns);
+          if (displayIdx !== -1) {
+            const displayLetter = String.fromCharCode(65 + displayIdx);
+            studentAnsText = `${displayLetter}. ${q.pilihan[studentAns] || ''}`;
+          }
+        }
+        if (correctAns) {
+          const displayIdx = pilihanKeys.indexOf(correctAns);
+          if (displayIdx !== -1) {
+            const displayLetter = String.fromCharCode(65 + displayIdx);
+            correctAnsText = `${displayLetter}. ${q.pilihan[correctAns] || ''}`;
+          }
+        }
+      } else {
+        studentAnsText = studentAns ? `${studentAns}. ${q.pilihan[studentAns] || ''}` : '(Tidak Dijawab)';
+        correctAnsText = correctAns ? `${correctAns}. ${q.pilihan[correctAns] || ''}` : '-';
+      }
 
       if (!studentAns || String(studentAns).trim() === '') {
         unansweredCount++;

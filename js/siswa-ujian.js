@@ -178,6 +178,39 @@ function loadSessionData() {
   }
 }
 
+// Deterministic hash code from string
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+// Seeded random number generator (Linear Congruential Generator)
+function seededRandom(seed) {
+  let m = 0x80000000;
+  let a = 1103515245;
+  let c = 12345;
+  let state = seed ? seed : Math.floor(Math.random() * (m - 1));
+  return function() {
+    state = (a * state + c) % m;
+    return state / (m - 1);
+  };
+}
+
+// Seeded Fisher-Yates shuffle
+function shuffleArray(array, seed) {
+  const rand = seededRandom(seed);
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 // Initialize layout and parameters
 async function initExam() {
   if (!loadSessionData()) return;
@@ -262,17 +295,33 @@ async function initExam() {
 
   // Prepare and normalize questions list (PG then Essays)
   let currentGlobalIndex = 1;
-  const soalPgList = activeSession.soal_pg || [];
-  const soalUraianList = activeSession.soal_uraian || [];
+  let soalPgList = [...(activeSession.soal_pg || [])];
+  let soalUraianList = [...(activeSession.soal_uraian || [])];
+
+  const paketVal = String(meta.paket || '');
+  const isAcak = /b|acak|random/i.test(paketVal);
+
+  if (isAcak && studentSession && studentSession.nisn) {
+    const seed = hashCode(studentSession.nisn);
+    soalPgList = shuffleArray(soalPgList, seed);
+    soalUraianList = shuffleArray(soalUraianList, seed);
+  }
 
   // Loop PG
   soalPgList.forEach((q) => {
+    let pilihanKeys = Object.keys(q.pilihan || {}).sort();
+    if (isAcak && studentSession && studentSession.nisn) {
+      const choiceSeed = hashCode(studentSession.nisn + '_' + q.id);
+      pilihanKeys = shuffleArray(pilihanKeys, choiceSeed);
+    }
+
     questionsList.push({
       globalIndex: currentGlobalIndex++,
       type: 'pg',
       id: q.id,
       pertanyaan: q.pertanyaan,
       pilihan: q.pilihan || {},
+      pilihanKeys: pilihanKeys,
       bobot: q.bobot || 'Mudah',
       bab: q.bab || 'Umum'
     });
@@ -463,9 +512,10 @@ function renderQuestions() {
     if (q.type === 'pg') {
       // Render PG options
       let optionsHtml = '';
-      const keys = Object.keys(q.pilihan).sort(); // A, B, C, D, E...
+      const keys = q.pilihanKeys || Object.keys(q.pilihan).sort(); // A, B, C, D, E...
       
-      keys.forEach((key) => {
+      keys.forEach((key, idx) => {
+        const labelLetter = String.fromCharCode(65 + idx); // A, B, C, D, E...
         const isSelected = jawabanSiswa.pg[q.id] === key;
         optionsHtml += `
           <label class="opsi-item ${isSelected ? 'selected' : ''}" id="label-${q.id}-${key}">
@@ -476,7 +526,7 @@ function renderQuestions() {
                    data-gidx="${q.globalIndex}" 
                    ${isSelected ? 'checked' : ''} 
                    onchange="saveAnswerPG('${q.id}', '${key}', ${q.globalIndex})">
-            <span class="opsi-label">${key}.</span>
+            <span class="opsi-label">${labelLetter}.</span>
             <span class="opsi-teks">${q.pilihan[key]}</span>
           </label>
         `;
