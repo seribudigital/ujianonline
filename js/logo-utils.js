@@ -97,7 +97,10 @@ function displayMadrasahLogo(containerId, session = null, fallbackShieldGradId =
   let activeSession = session;
 
   if (!activeSession) {
-    const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+    let activeSessionRaw = localStorage.getItem('smartexam_active_session');
+    if (!activeSessionRaw) {
+      activeSessionRaw = localStorage.getItem('smartexam_proktor_active_session');
+    }
     if (activeSessionRaw) {
       try {
         activeSession = JSON.parse(activeSessionRaw);

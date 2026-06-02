@@ -104,7 +104,7 @@ function deserializeSession(session) {
 
 // Load active session from Supabase (or localStorage fallback)
 async function loadActiveSession() {
-  const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+  const activeSessionRaw = localStorage.getItem('smartexam_proktor_active_session');
   if (activeSessionRaw) {
     try {
       let session = JSON.parse(activeSessionRaw);
@@ -124,12 +124,12 @@ async function loadActiveSession() {
           console.error("Gagal verifikasi sesi ke Supabase:", error);
         } else if (!data) {
           // Session not found in database, clean local storage
-          localStorage.removeItem('smartexam_active_session');
+          localStorage.removeItem('smartexam_proktor_active_session');
           showNoSession();
           return;
         } else {
           // Ensure local storage is updated with DB values
-          localStorage.setItem('smartexam_active_session', JSON.stringify(data));
+          localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(data));
           let dbSession = deserializeSession(data);
           const dbMeta = dbSession.metadata ? dbSession.metadata : dbSession;
           meta.tahun = dbMeta.tahun;
@@ -186,7 +186,7 @@ async function loadActiveSession() {
 
     } catch (e) {
       console.error("Gagal mengurai smartexam_active_session", e);
-      localStorage.removeItem('smartexam_active_session');
+      localStorage.removeItem('smartexam_proktor_active_session');
       showNoSession();
     }
   } else {
@@ -232,7 +232,7 @@ if (btnToggleSession) {
       return;
     }
 
-    const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+    const activeSessionRaw = localStorage.getItem('smartexam_proktor_active_session');
     if (!activeSessionRaw) return;
 
     let session = JSON.parse(activeSessionRaw);
@@ -256,7 +256,7 @@ if (btnToggleSession) {
         }
 
         session.is_active = nextStatus;
-        localStorage.setItem('smartexam_active_session', JSON.stringify(session));
+        localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(session));
         showAlert(`Sesi ujian berhasil ${nextStatus ? 'dibuka' : 'ditutup'} secara global.`, 'success');
         loadActiveSession();
       } catch (err) {
@@ -275,7 +275,7 @@ if (btnDownloadArchive) {
       return;
     }
 
-    const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+    const activeSessionRaw = localStorage.getItem('smartexam_proktor_active_session');
     if (!activeSessionRaw) return;
 
     try {
@@ -390,7 +390,7 @@ if (archiveTriggerBtn && archiveFileInput) {
 
         // Restore session config if present
         if (sessionConfig) {
-          localStorage.setItem('smartexam_active_session', JSON.stringify(sessionConfig));
+          localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(sessionConfig));
           
           idUjianAktif = sessionConfig.id;
           sessionConfig = deserializeSession(sessionConfig);
@@ -411,7 +411,7 @@ if (archiveTriggerBtn && archiveFileInput) {
           sessionActiveContent.style.display = 'block';
         } else {
           // Warning if no config embedded
-          const localSessionRaw = localStorage.getItem('smartexam_active_session');
+          const localSessionRaw = localStorage.getItem('smartexam_proktor_active_session');
           if (localSessionRaw) {
             const localSession = JSON.parse(localSessionRaw);
             if (localSession.id !== studentAnswers[0].mapel_id) {
@@ -609,7 +609,7 @@ function handleExamFile(file) {
     }
 
     rawData.is_active = true;
-    localStorage.setItem('smartexam_active_session', JSON.stringify(rawData));
+    localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(rawData));
     showAlert('Sesi soal ujian berhasil diunggah dan disinkronkan ke Supabase!', 'success');
     loadActiveSession();
   };
@@ -808,7 +808,7 @@ if (btnExportExcel) {
       }
 
       // Get the active session questions for scoring
-      const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+      const activeSessionRaw = localStorage.getItem('smartexam_proktor_active_session');
       let questionsPG = [];
       let questionsUraian = [];
       let mapelName = 'Ujian';
@@ -920,7 +920,7 @@ window.openPrintModal = function(nisn) {
 
   currentStudentForPrint = student;
 
-  const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+  const activeSessionRaw = localStorage.getItem('smartexam_proktor_active_session');
   if (!activeSessionRaw) {
     showAlert("Tidak ada sesi ujian aktif di lokal.", "danger");
     return;
@@ -1081,7 +1081,7 @@ if (confirmPrintBtn) {
     if (!currentStudentForPrint) return;
 
     const student = currentStudentForPrint;
-    const activeSessionRaw = localStorage.getItem('smartexam_active_session');
+    const activeSessionRaw = localStorage.getItem('smartexam_proktor_active_session');
     const session = JSON.parse(activeSessionRaw);
     const meta = session.metadata || session;
     let questionsPG = [...(session.soal_pg || [])];
