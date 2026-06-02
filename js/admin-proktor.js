@@ -1663,6 +1663,14 @@ window.viewHistorySession = async function(mapelId) {
     // Switch to tab monitor
     if(btnTabMonitor) btnTabMonitor.click();
     
+    // Scroll to the Live Monitor card
+    setTimeout(() => {
+      const monitorCard = document.getElementById('live-monitor-card');
+      if (monitorCard) {
+        monitorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+    
     // Unsubscribe from active realtime if any
     if (realtimeChannel) {
       realtimeChannel.unsubscribe();
