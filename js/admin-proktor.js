@@ -128,9 +128,9 @@ async function loadActiveSession() {
           showNoSession();
           return;
         } else {
-          // Ensure local storage is updated with DB values
-          localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(data));
           let dbSession = deserializeSession(data);
+          // Ensure local storage is updated with DB values
+          localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(dbSession));
           const dbMeta = dbSession.metadata ? dbSession.metadata : dbSession;
           meta.tahun = dbMeta.tahun;
           meta.semester = dbMeta.semester;
@@ -236,6 +236,7 @@ if (btnToggleSession) {
     if (!activeSessionRaw) return;
 
     let session = JSON.parse(activeSessionRaw);
+    session = deserializeSession(session);
     const currentStatus = session.is_active !== false; // default true
     const nextStatus = !currentStatus;
 
@@ -813,7 +814,8 @@ if (btnExportExcel) {
       let questionsUraian = [];
       let mapelName = 'Ujian';
       if (activeSessionRaw) {
-        const sessionObj = JSON.parse(activeSessionRaw);
+        let sessionObj = JSON.parse(activeSessionRaw);
+        sessionObj = deserializeSession(sessionObj);
         questionsPG = sessionObj.soal_pg || [];
         questionsUraian = sessionObj.soal_uraian || [];
         const meta = sessionObj.metadata || sessionObj;
@@ -926,7 +928,8 @@ window.openPrintModal = function(nisn) {
     return;
   }
 
-  const session = JSON.parse(activeSessionRaw);
+  let session = JSON.parse(activeSessionRaw);
+  session = deserializeSession(session);
   const meta = session.metadata || session;
   let questionsPG = [...(session.soal_pg || [])];
   let questionsUraian = [...(session.soal_uraian || [])];
@@ -1082,7 +1085,8 @@ if (confirmPrintBtn) {
 
     const student = currentStudentForPrint;
     const activeSessionRaw = localStorage.getItem('smartexam_proktor_active_session');
-    const session = JSON.parse(activeSessionRaw);
+    let session = JSON.parse(activeSessionRaw);
+    session = deserializeSession(session);
     const meta = session.metadata || session;
     let questionsPG = [...(session.soal_pg || [])];
     let questionsUraian = [...(session.soal_uraian || [])];
