@@ -280,6 +280,56 @@
 
     <!-- TAB: Live Monitor (Active) -->
     <div id="tab-monitor">
+      <!-- Live Monitor Card -->
+      <div class="card" id="live-monitor-card" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+          <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="monitor" style="color: var(--primary);"></i> Live Proktor Monitor
+          </h3>
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="btn" id="btn-export-excel" style="background: linear-gradient(135deg, #107c41, #1f9a55); color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px -1px rgba(16, 124, 65, 0.2);" disabled>
+              <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i> Ekspor Semua Hasil (Excel)
+            </button>
+            <span class="badge badge-success" id="monitor-count">0 Siswa Terdaftar</span>
+          </div>
+        </div>
+
+        <!-- Offline Mode Banner -->
+        <div id="offline-archive-banner" style="display: none; background-color: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; align-items: center; justify-content: space-between; gap: 1rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+            <i data-lucide="info" style="color: var(--secondary); flex-shrink: 0; width: 18px; height: 18px;"></i>
+            <span><strong>Mode Offline:</strong> Menampilkan Data Arsip Lampau (Read-Only). Sinkronisasi cloud ditangguhkan.</span>
+          </div>
+          <button class="btn" id="btn-exit-offline" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; background-color: #ffffff; border: 1px solid #c7d2fe; color: #3730a3; font-weight: 600;">
+            <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Kembali ke Live Monitor
+          </button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width: 60px;">No</th>
+                <th>NISN</th>
+                <th>Nama Siswa</th>
+                <th>Status</th>
+                <th>Pelanggaran</th>
+                <th>Waktu Mulai</th>
+                <th style="width: 140px;">Laporan</th>
+              </tr>
+            </thead>
+            <tbody id="monitor-table-body">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+                  <i data-lucide="users" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted);"></i>
+                  Belum ada siswa yang login untuk mata pelajaran aktif ini.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="dashboard-grid">
       <!-- Left Column: Upload Area -->
       <div>
@@ -525,55 +575,7 @@
       </div>
     </div>
 
-    <!-- Live Monitor Card -->
-    <div class="card" id="live-monitor-card" style="margin-top: 2rem;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
-        <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-          <i data-lucide="monitor" style="color: var(--primary);"></i> Live Proktor Monitor
-        </h3>
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <button class="btn" id="btn-export-excel" style="background: linear-gradient(135deg, #107c41, #1f9a55); color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px -1px rgba(16, 124, 65, 0.2);" disabled>
-            <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i> Ekspor Semua Hasil (Excel)
-          </button>
-          <span class="badge badge-success" id="monitor-count">0 Siswa Terdaftar</span>
-        </div>
-      </div>
 
-      <!-- Offline Mode Banner -->
-      <div id="offline-archive-banner" style="display: none; background-color: #e0e7ff; border: 1px solid #c7d2fe; color: #3730a3; padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem; align-items: center; justify-content: space-between; gap: 1rem;">
-        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
-          <i data-lucide="info" style="color: var(--secondary); flex-shrink: 0; width: 18px; height: 18px;"></i>
-          <span><strong>Mode Offline:</strong> Menampilkan Data Arsip Lampau (Read-Only). Sinkronisasi cloud ditangguhkan.</span>
-        </div>
-        <button class="btn" id="btn-exit-offline" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; background-color: #ffffff; border: 1px solid #c7d2fe; color: #3730a3; font-weight: 600;">
-          <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Kembali ke Live Monitor
-        </button>
-      </div>
-
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th style="width: 60px;">No</th>
-              <th>NISN</th>
-              <th>Nama Siswa</th>
-              <th>Status</th>
-              <th>Pelanggaran</th>
-              <th>Waktu Mulai</th>
-              <th style="width: 140px;">Laporan</th>
-            </tr>
-          </thead>
-          <tbody id="monitor-table-body">
-            <tr>
-              <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
-                <i data-lucide="users" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: var(--text-muted);"></i>
-                Belum ada siswa yang login untuk mata pelajaran aktif ini.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      </div>
     </div>
     <!-- END TAB: Live Monitor -->
 
