@@ -214,6 +214,15 @@ function showNoSession() {
   `;
   monitorCount.textContent = "0 Siswa Terdaftar";
   lucide.createIcons();
+
+  // Open upload card if there is no active session
+  const contentUpload = document.getElementById('content-upload');
+  const iconUpload = document.getElementById('icon-upload');
+  if (contentUpload && iconUpload && contentUpload.style.display === 'none') {
+    contentUpload.style.display = 'block';
+    iconUpload.style.transform = 'rotate(0deg)';
+  }
+
   if (realtimeChannel) {
     realtimeChannel.unsubscribe();
     realtimeChannel = null;

@@ -341,10 +341,10 @@
             <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
               <i data-lucide="file-up" style="color: var(--primary);"></i> Unggah Soal Ujian
             </h3>
-            <i data-lucide="chevron-up" id="icon-upload" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+            <i data-lucide="chevron-up" id="icon-upload" style="color: var(--text-muted); transition: transform 0.2s; transform: rotate(180deg);"></i>
           </div>
           
-          <div id="content-upload">
+          <div id="content-upload" style="display: none;">
             <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">
               Ekspor file JSON dari aplikasi <strong>AmanaExam Guru</strong> kemudian seret & lepas atau klik area di bawah untuk mengunggahnya.
             </p>
@@ -368,10 +368,10 @@
             <h3 style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
               <i data-lucide="info" style="color: var(--secondary);"></i> Panduan Struktur Data Soal
             </h3>
-            <i data-lucide="chevron-up" id="icon-panduan" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+            <i data-lucide="chevron-up" id="icon-panduan" style="color: var(--text-muted); transition: transform 0.2s; transform: rotate(180deg);"></i>
           </div>
           
-          <div id="content-panduan">
+          <div id="content-panduan" style="display: none;">
             <p style="font-size: 0.875rem; margin-bottom: 0.75rem; color: var(--text-body);">
               File JSON wajib memiliki struktur data berikut agar terbaca di halaman siswa:
             </p>
@@ -398,14 +398,14 @@
           <div class="collapsible-header" onclick="toggleCollapse('content-session', 'icon-session')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
               <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="activity" style="color: var(--primary);"></i> Sesi Aktif Saat Ini
+                <i data-lucide="activity" style="color: var(--primary);"></i> Informasi Sesi Ujian
               </h3>
-              <span id="session-header-subtitle" style="font-size: 0.85rem; color: var(--secondary); font-weight: 600; padding-left: 0.5rem; border-left: 2px solid var(--border-color); display: none;">-</span>
+              <span id="session-header-subtitle" style="font-size: 0.85rem; color: var(--secondary); font-weight: 600; padding-left: 0.5rem; border-left: 2px solid var(--border-color); display: block;">-</span>
             </div>
-            <i data-lucide="chevron-up" id="icon-session" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+            <i data-lucide="chevron-up" id="icon-session" style="color: var(--text-muted); transition: transform 0.2s; transform: rotate(180deg);"></i>
           </div>
           
-          <div id="content-session">
+          <div id="content-session" style="display: none;">
           <div id="no-session-content">
             <div style="text-align: center; padding: 2rem 0;">
               <i data-lucide="database-backup" style="width: 40px; height: 40px; color: var(--text-muted); margin-bottom: 0.75rem;"></i>
@@ -474,7 +474,7 @@
             <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
               <i data-lucide="archive" style="color: var(--primary); width: 20px; height: 20px;"></i> Manajemen Arsip Ujian
             </h3>
-            <i data-lucide="chevron-down" id="icon-arsip" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+            <i data-lucide="chevron-up" id="icon-arsip" style="color: var(--text-muted); transition: transform 0.2s; transform: rotate(180deg);"></i>
           </div>
           <div id="content-arsip" style="display: none;">
           <div style="background-color: var(--primary-light); padding: 1rem; border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-body); margin-bottom: 1.25rem; border-left: 4px solid var(--primary); line-height: 1.5; text-align: left;">
@@ -519,7 +519,7 @@
             <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
               <i data-lucide="settings" style="color: var(--primary); width: 20px; height: 20px;"></i> Pengaturan Cetak Rapot
             </h3>
-            <i data-lucide="chevron-down" id="icon-cetak" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+            <i data-lucide="chevron-up" id="icon-cetak" style="color: var(--text-muted); transition: transform 0.2s; transform: rotate(180deg);"></i>
           </div>
           <div id="content-cetak" style="display: none;">
           <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">
