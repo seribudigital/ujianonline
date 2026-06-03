@@ -150,17 +150,18 @@ async function loadActiveSession() {
       // Update Toggle Session button
       const btnToggleSession = document.getElementById('btn-toggle-session');
       if (btnToggleSession) {
+        btnToggleSession.style.display = 'flex';
         const isActive = session.is_active !== false; // defaults to true
         if (isActive) {
           btnToggleSession.className = 'btn btn-danger';
           btnToggleSession.style.backgroundColor = '';
           btnToggleSession.style.color = '';
-          btnToggleSession.innerHTML = `<i data-lucide="lock"></i> Tutup Sesi Ujian`;
+          btnToggleSession.innerHTML = `<i data-lucide="lock" style="width: 16px; height: 16px;"></i> Tutup Sesi Ujian`;
         } else {
           btnToggleSession.className = 'btn';
           btnToggleSession.style.backgroundColor = 'var(--success)';
           btnToggleSession.style.color = '#ffffff';
-          btnToggleSession.innerHTML = `<i data-lucide="unlock"></i> Buka Sesi Ujian`;
+          btnToggleSession.innerHTML = `<i data-lucide="unlock" style="width: 16px; height: 16px;"></i> Buka Sesi Ujian`;
         }
       }
 
@@ -203,6 +204,9 @@ function showNoSession() {
 
   const monitorSubtitle = document.getElementById('live-monitor-subtitle');
   if (monitorSubtitle) monitorSubtitle.style.display = 'none';
+
+  const btnToggleSession = document.getElementById('btn-toggle-session');
+  if (btnToggleSession) btnToggleSession.style.display = 'none';
 
   monitorTableBody.innerHTML = `
     <tr>
@@ -1804,6 +1808,9 @@ window.viewHistorySession = async function(mapelId) {
 
     const btnExportExcel = document.getElementById('btn-export-excel');
     if (btnExportExcel) btnExportExcel.disabled = false;
+
+    const btnToggleSession = document.getElementById('btn-toggle-session');
+    if (btnToggleSession) btnToggleSession.style.display = 'none';
 
     // Build temporary localStorage config for offline mode print
     let meta = {

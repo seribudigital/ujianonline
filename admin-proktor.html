@@ -290,6 +290,9 @@
             <span id="live-monitor-subtitle" style="font-size: 0.85rem; color: var(--secondary); font-weight: 500; display: none;">-</span>
           </div>
           <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="btn btn-danger" id="btn-toggle-session" style="padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; display: none; align-items: center; gap: 0.5rem; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+              <i data-lucide="lock" style="width: 16px; height: 16px;"></i> Tutup Sesi Ujian
+            </button>
             <button class="btn" id="btn-export-excel" style="background: linear-gradient(135deg, #107c41, #1f9a55); color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px -1px rgba(16, 124, 65, 0.2);" disabled>
               <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i> Ekspor Semua Hasil (Excel)
             </button>
@@ -460,9 +463,6 @@
                 <i data-lucide="check-circle-2" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
                 <span>Sesi ujian siap diakses oleh siswa di database cloud.</span>
               </div>
-              <button class="btn btn-danger" id="btn-toggle-session" style="width: 100%;">
-                <i data-lucide="lock"></i> Tutup Sesi Ujian
-              </button>
             </div>
           </div>
           </div>
