@@ -284,34 +284,45 @@
       <!-- Left Column: Upload Area -->
       <div>
         <div class="card card-hover" style="margin-bottom: 1.5rem;">
-          <h3 style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i data-lucide="file-up" style="color: var(--primary);"></i> Unggah Soal Ujian
-          </h3>
-          <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">
-            Ekspor file JSON dari aplikasi <strong>AmanaExam Guru</strong> kemudian seret & lepas atau klik area di bawah untuk mengunggahnya.
-          </p>
-
-          <div class="upload-zone" id="upload-zone">
-            <div class="upload-zone-icon">
-              <i data-lucide="upload-cloud" style="width: 48px; height: 48px;"></i>
-            </div>
-            <p style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
-              Tarik file JSON Anda ke sini atau <span style="color: var(--primary);">telusuri berkas</span>
+          <div class="collapsible-header" onclick="toggleCollapse('content-upload', 'icon-upload')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="file-up" style="color: var(--primary);"></i> Unggah Soal Ujian
+            </h3>
+            <i data-lucide="chevron-up" id="icon-upload" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+          </div>
+          
+          <div id="content-upload">
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">
+              Ekspor file JSON dari aplikasi <strong>AmanaExam Guru</strong> kemudian seret & lepas atau klik area di bawah untuk mengunggahnya.
             </p>
-            <p style="font-size: 0.75rem; color: var(--text-muted);">Mendukung format .json ekspor resmi AmanaExam Guru</p>
-            <input type="file" id="file-input" accept=".json">
+
+            <div class="upload-zone" id="upload-zone">
+              <div class="upload-zone-icon">
+                <i data-lucide="upload-cloud" style="width: 48px; height: 48px;"></i>
+              </div>
+              <p style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">
+                Tarik file JSON Anda ke sini atau <span style="color: var(--primary);">telusuri berkas</span>
+              </p>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">Mendukung format .json ekspor resmi AmanaExam Guru</p>
+              <input type="file" id="file-input" accept=".json">
+            </div>
           </div>
         </div>
 
         <!-- Format Panduan -->
         <div class="card">
-          <h3 style="margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i data-lucide="info" style="color: var(--secondary);"></i> Panduan Struktur Data Soal
-          </h3>
-          <p style="font-size: 0.875rem; margin-bottom: 0.75rem; color: var(--text-body);">
-            File JSON wajib memiliki struktur data berikut agar terbaca di halaman siswa:
-          </p>
-          <pre style="background-color: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); font-family: monospace; font-size: 0.75rem; overflow-x: auto; border: 1px solid var(--border-color); color: #1e293b;">
+          <div class="collapsible-header" onclick="toggleCollapse('content-panduan', 'icon-panduan')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="info" style="color: var(--secondary);"></i> Panduan Struktur Data Soal
+            </h3>
+            <i data-lucide="chevron-up" id="icon-panduan" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+          </div>
+          
+          <div id="content-panduan">
+            <p style="font-size: 0.875rem; margin-bottom: 0.75rem; color: var(--text-body);">
+              File JSON wajib memiliki struktur data berikut agar terbaca di halaman siswa:
+            </p>
+            <pre style="background-color: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); font-family: monospace; font-size: 0.75rem; overflow-x: auto; border: 1px solid var(--border-color); color: #1e293b;">
 {
   "madrasah": "Nama Madrasah",
   "mapel_nama": "Mata Pelajaran",
@@ -324,6 +335,7 @@
   "soal_pg": [...],
   "soal_uraian": [...]
 }</pre>
+          </div>
         </div>
       </div>
 
@@ -331,9 +343,12 @@
       <div>
         <div class="card session-info-card" id="session-card">
           <div class="collapsible-header" onclick="toggleCollapse('content-session', 'icon-session')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-              <i data-lucide="activity" style="color: var(--primary);"></i> Sesi Aktif Saat Ini
-            </h3>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="activity" style="color: var(--primary);"></i> Sesi Aktif Saat Ini
+              </h3>
+              <span id="session-header-subtitle" style="font-size: 0.85rem; color: var(--secondary); font-weight: 600; padding-left: 0.5rem; border-left: 2px solid var(--border-color); display: none;">-</span>
+            </div>
             <i data-lucide="chevron-up" id="icon-session" style="color: var(--text-muted); transition: transform 0.2s;"></i>
           </div>
           

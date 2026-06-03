@@ -71,9 +71,17 @@ window.toggleCollapse = function(contentId, iconId) {
   if (content.style.display === 'none') {
     content.style.display = 'block';
     icon.style.transform = 'rotate(0deg)';
+    if (contentId === 'content-session') {
+      const subtitle = document.getElementById('session-header-subtitle');
+      if (subtitle) subtitle.style.display = 'none';
+    }
   } else {
     content.style.display = 'none';
     icon.style.transform = 'rotate(180deg)';
+    if (contentId === 'content-session') {
+      const subtitle = document.getElementById('session-header-subtitle');
+      if (subtitle) subtitle.style.display = 'block';
+    }
   }
 }
 
@@ -124,6 +132,10 @@ async function loadActiveSession() {
       valDurasi.textContent = meta.waktu_menit || '0';
       valSoalPg.textContent = session.soal_pg ? session.soal_pg.length : 0;
       valSoalUraian.textContent = session.soal_uraian ? session.soal_uraian.length : 0;
+
+      // Update subtitle
+      const subtitle = document.getElementById('session-header-subtitle');
+      if (subtitle) subtitle.textContent = `${meta.mapel_nama || ''} (Kelas ${meta.kelas || ''})`;
 
       // Enable Excel export button
       const btnExportExcel = document.getElementById('btn-export-excel');
@@ -1739,6 +1751,10 @@ window.viewHistorySession = async function(mapelId) {
     valDurasi.textContent = escapeHtml(sessionConfig.waktu_menit || '0');
     valSoalPg.textContent = sessionConfig.soal_pg ? sessionConfig.soal_pg.length : 0;
     valSoalUraian.textContent = sessionConfig.soal_uraian ? sessionConfig.soal_uraian.length : 0;
+
+    // Update subtitle
+    const subtitle = document.getElementById('session-header-subtitle');
+    if (subtitle) subtitle.textContent = `${sessionConfig.mapel_nama || ''} (Kelas ${sessionConfig.kelas || ''})`;
 
     noSessionContent.style.display = 'none';
     sessionActiveContent.style.display = 'block';
