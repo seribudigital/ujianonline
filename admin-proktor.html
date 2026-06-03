@@ -283,9 +283,12 @@
       <!-- Live Monitor Card -->
       <div class="card" id="live-monitor-card" style="margin-bottom: 2rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
-          <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-            <i data-lucide="monitor" style="color: var(--primary);"></i> Live Proktor Monitor
-          </h3>
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="monitor" style="color: var(--primary);"></i> Live Proktor Monitor
+            </h3>
+            <span id="live-monitor-subtitle" style="font-size: 0.85rem; color: var(--secondary); font-weight: 500; display: none;">-</span>
+          </div>
           <div style="display: flex; align-items: center; gap: 1rem;">
             <button class="btn" id="btn-export-excel" style="background: linear-gradient(135deg, #107c41, #1f9a55); color: white; border: none; padding: 0.6rem 1.2rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px -1px rgba(16, 124, 65, 0.2);" disabled>
               <i data-lucide="file-spreadsheet" style="width: 16px; height: 16px;"></i> Ekspor Semua Hasil (Excel)

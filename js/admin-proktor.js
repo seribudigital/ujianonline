@@ -137,6 +137,12 @@ async function loadActiveSession() {
       const subtitle = document.getElementById('session-header-subtitle');
       if (subtitle) subtitle.textContent = `${meta.mapel_nama || ''} (Kelas ${meta.kelas || ''})`;
 
+      const monitorSubtitle = document.getElementById('live-monitor-subtitle');
+      if (monitorSubtitle) {
+        monitorSubtitle.textContent = `${meta.mapel_nama || ''} (Kelas ${meta.kelas || ''})`;
+        monitorSubtitle.style.display = 'block';
+      }
+
       // Enable Excel export button
       const btnExportExcel = document.getElementById('btn-export-excel');
       if (btnExportExcel) btnExportExcel.disabled = false;
@@ -194,6 +200,9 @@ function showNoSession() {
   const btnDeletePermanently = document.getElementById('btn-delete-permanently');
   if (btnDownloadArchive) btnDownloadArchive.disabled = true;
   if (btnDeletePermanently) btnDeletePermanently.disabled = true;
+
+  const monitorSubtitle = document.getElementById('live-monitor-subtitle');
+  if (monitorSubtitle) monitorSubtitle.style.display = 'none';
 
   monitorTableBody.innerHTML = `
     <tr>
@@ -1755,6 +1764,17 @@ window.viewHistorySession = async function(mapelId) {
     // Update subtitle
     const subtitle = document.getElementById('session-header-subtitle');
     if (subtitle) subtitle.textContent = `${sessionConfig.mapel_nama || ''} (Kelas ${sessionConfig.kelas || ''})`;
+
+    const monitorSubtitle = document.getElementById('live-monitor-subtitle');
+    if (monitorSubtitle) {
+      let dateText = '';
+      if (sessionConfig.created_at) {
+         const dateObj = new Date(sessionConfig.created_at);
+         dateText = ' - ' + dateObj.toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit'}) + ' WIB';
+      }
+      monitorSubtitle.textContent = `${sessionConfig.mapel_nama || ''} (Kelas ${sessionConfig.kelas || ''})${dateText}`;
+      monitorSubtitle.style.display = 'block';
+    }
 
     noSessionContent.style.display = 'none';
     sessionActiveContent.style.display = 'block';
