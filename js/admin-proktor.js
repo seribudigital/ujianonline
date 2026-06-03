@@ -60,6 +60,23 @@ function showAlert(message, type = 'success') {
 // Utility functions (hashCode, seededRandom, shuffleArray, deserializeSession, escapeHtml)
 // are now provided globally by utils.js
 
+// ==========================================
+// COLLAPSIBLE CARDS LOGIC
+// ==========================================
+window.toggleCollapse = function(contentId, iconId) {
+  const content = document.getElementById(contentId);
+  const icon = document.getElementById(iconId);
+  if (!content || !icon) return;
+  
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    icon.style.transform = 'rotate(0deg)';
+  } else {
+    content.style.display = 'none';
+    icon.style.transform = 'rotate(180deg)';
+  }
+}
+
 // Load active session from Supabase (or localStorage fallback)
 async function loadActiveSession() {
   const activeSessionRaw = localStorage.getItem('smartexam_proktor_active_session');

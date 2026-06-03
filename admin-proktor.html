@@ -330,10 +330,14 @@
       <!-- Right Column: Active Session Summary -->
       <div>
         <div class="card session-info-card" id="session-card">
-          <h3 style="margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
-            <i data-lucide="activity" style="color: var(--primary);"></i> Sesi Aktif Saat Ini
-          </h3>
+          <div class="collapsible-header" onclick="toggleCollapse('content-session', 'icon-session')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+              <i data-lucide="activity" style="color: var(--primary);"></i> Sesi Aktif Saat Ini
+            </h3>
+            <i data-lucide="chevron-up" id="icon-session" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+          </div>
           
+          <div id="content-session">
           <div id="no-session-content">
             <div style="text-align: center; padding: 2rem 0;">
               <i data-lucide="database-backup" style="width: 40px; height: 40px; color: var(--text-muted); margin-bottom: 0.75rem;"></i>
@@ -393,13 +397,18 @@
               </button>
             </div>
           </div>
+          </div>
         </div>
 
         <!-- Archive & Backup Management Card -->
         <div class="card" style="margin-top: 1.5rem;">
-          <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
-            <i data-lucide="archive" style="color: var(--primary); width: 20px; height: 20px;"></i> Manajemen Arsip Ujian
-          </h3>
+          <div class="collapsible-header" onclick="toggleCollapse('content-arsip', 'icon-arsip')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+              <i data-lucide="archive" style="color: var(--primary); width: 20px; height: 20px;"></i> Manajemen Arsip Ujian
+            </h3>
+            <i data-lucide="chevron-down" id="icon-arsip" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+          </div>
+          <div id="content-arsip" style="display: none;">
           <div style="background-color: var(--primary-light); padding: 1rem; border-radius: var(--radius-md); font-size: 0.8rem; color: var(--text-body); margin-bottom: 1.25rem; border-left: 4px solid var(--primary); line-height: 1.5; text-align: left;">
             <div style="font-weight: 700; color: var(--primary-hover); display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.5rem; font-size: 0.85rem;">
               <i data-lucide="lightbulb" style="width: 16px; height: 16px; flex-shrink: 0; color: var(--secondary);"></i>
@@ -433,13 +442,18 @@
               <i data-lucide="alert-octagon"></i> Hapus Permanen Data Sesi dari Cloud
             </button>
           </div>
+          </div>
         </div>
 
         <!-- Global Report Print Settings Card -->
         <div class="card" style="margin-top: 1.5rem;">
-          <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
-            <i data-lucide="settings" style="color: var(--primary); width: 20px; height: 20px;"></i> Pengaturan Cetak Rapot
-          </h3>
+          <div class="collapsible-header" onclick="toggleCollapse('content-cetak', 'icon-cetak')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+              <i data-lucide="settings" style="color: var(--primary); width: 20px; height: 20px;"></i> Pengaturan Cetak Rapot
+            </h3>
+            <i data-lucide="chevron-down" id="icon-cetak" style="color: var(--text-muted); transition: transform 0.2s;"></i>
+          </div>
+          <div id="content-cetak" style="display: none;">
           <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 1.25rem;">
             Atur nama kota penandatanganan dan logo instansi (MTs & MA) secara global untuk laporan rapot.
           </p>
@@ -490,6 +504,7 @@
                 </div>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </div>
