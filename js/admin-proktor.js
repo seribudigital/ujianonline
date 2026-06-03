@@ -350,6 +350,16 @@ if (archiveTriggerBtn && archiveFileInput) {
 
         // Restore session config if present
         if (sessionConfig) {
+          // Save real active session if we haven't already
+          if (!sessionStorage.getItem('smartexam_real_active_session')) {
+            const currentActive = localStorage.getItem('smartexam_proktor_active_session');
+            if (currentActive) {
+              sessionStorage.setItem('smartexam_real_active_session', currentActive);
+            } else {
+              sessionStorage.setItem('smartexam_real_active_session', 'NONE');
+            }
+          }
+
           localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(sessionConfig));
           
           idUjianAktif = sessionConfig.id;
@@ -419,6 +429,18 @@ if (btnExitOffline) {
     isOfflineArchiveMode = false;
     document.getElementById('offline-archive-banner').style.display = 'none';
     
+    // Restore real active session
+    const realActive = sessionStorage.getItem('smartexam_real_active_session');
+    if (realActive === 'NONE') {
+      localStorage.removeItem('smartexam_proktor_active_session');
+      sessionStorage.removeItem('smartexam_real_active_session');
+    } else if (realActive) {
+      localStorage.setItem('smartexam_proktor_active_session', realActive);
+      sessionStorage.removeItem('smartexam_real_active_session');
+    } else {
+      localStorage.removeItem('smartexam_proktor_active_session');
+    }
+
     // Restore badge style
     monitorCount.className = 'badge badge-success';
     monitorCount.style.backgroundColor = '';
@@ -1739,6 +1761,17 @@ window.viewHistorySession = async function(mapelId) {
       soal_uraian: sessionConfig.soal_uraian,
       is_active: sessionConfig.is_active
     };
+
+    // Save real active session if we haven't already
+    if (!sessionStorage.getItem('smartexam_real_active_session')) {
+      const currentActive = localStorage.getItem('smartexam_proktor_active_session');
+      if (currentActive) {
+        sessionStorage.setItem('smartexam_real_active_session', currentActive);
+      } else {
+        sessionStorage.setItem('smartexam_real_active_session', 'NONE');
+      }
+    }
+
     localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(localConfig));
     
     showAlert('Berhasil memuat ' + (answersData ? answersData.length : 0) + ' data siswa dalam Mode Arsip.', 'success');
