@@ -108,7 +108,7 @@ async function loadActiveSession() {
         } else if (!data) {
           // Session not found in database, clean local storage
           localStorage.removeItem('smartexam_proktor_active_session');
-          showNoSession();
+          fetchAndLoadActiveSessionFromDB();
           return;
         } else {
           let dbSession = deserializeSession(data);
@@ -181,6 +181,37 @@ async function loadActiveSession() {
     } catch (e) {
       console.error("Gagal mengurai smartexam_active_session", e);
       localStorage.removeItem('smartexam_proktor_active_session');
+      fetchAndLoadActiveSessionFromDB();
+    }
+  } else {
+    fetchAndLoadActiveSessionFromDB();
+  }
+}
+
+// Fetch active session from database if local storage is empty
+async function fetchAndLoadActiveSessionFromDB() {
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('ujian_aktif')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Gagal mengambil sesi aktif dari Supabase:", error);
+        showNoSession();
+      } else if (data) {
+        let dbSession = deserializeSession(data);
+        localStorage.setItem('smartexam_proktor_active_session', JSON.stringify(dbSession));
+        loadActiveSession();
+      } else {
+        showNoSession();
+      }
+    } catch (err) {
+      console.error("Koneksi database cloud error saat mengambil sesi aktif:", err);
       showNoSession();
     }
   } else {
