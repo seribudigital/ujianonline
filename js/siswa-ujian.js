@@ -70,6 +70,7 @@ let isTabAway = false; // Debounce flag for tab visibility trigger
 let wakeLock = null;
 let blurTimeout = null;
 let tabAwayGraceActive = false;
+let studentRealtimeChannel = null;
 
 // Student Answers State (loaded from localStorage on init)
 let jawabanSiswa = {
@@ -192,6 +193,39 @@ async function initExam() {
     recreateSupabaseClient({
       'x-student-nisn': studentSession.nisn
     });
+  }
+
+  // Sync student status from Supabase to check for admin unblocking / status
+  if (supabaseClient && activeSession && studentSession) {
+    try {
+      const { data: dbStudent, error: studentErr } = await supabaseClient
+        .from('jawaban_siswa')
+        .select('status_pengumpulan, violation_count')
+        .eq('mapel_id', activeSession.id)
+        .eq('nisn', studentSession.nisn)
+        .maybeSingle();
+
+      if (dbStudent) {
+        if (dbStudent.status_pengumpulan === 'normal') {
+          // If locked locally but 'normal' in DB, it means admin unblocked them!
+          const wasBlockedLocally = localStorage.getItem('smartexam_exam_submitted') === 'true' && localStorage.getItem('smartexam_exam_submit_type') === 'violation_locked';
+          if (wasBlockedLocally) {
+            localStorage.removeItem('smartexam_exam_submitted');
+            localStorage.removeItem('smartexam_exam_submit_type');
+            localStorage.removeItem('smartexam_exam_end_time');
+            examSubmitted = false;
+          }
+          localStorage.setItem('smartexam_violation_count', dbStudent.violation_count);
+        } else if (dbStudent.status_pengumpulan === 'violation_locked' || dbStudent.status_pengumpulan === 'selesai' || dbStudent.status_pengumpulan === 'timer_expired') {
+          // Force lock state matching DB status
+          localStorage.setItem('smartexam_exam_submitted', 'true');
+          localStorage.setItem('smartexam_exam_submit_type', dbStudent.status_pengumpulan);
+          examSubmitted = true;
+        }
+      }
+    } catch (e) {
+      console.error("Gagal sinkronisasi data status siswa dari Supabase:", e);
+    }
   }
 
   // Force fetch active session from Supabase to ensure guru and semester metadata are always fresh
@@ -333,6 +367,9 @@ async function initExam() {
   window.addEventListener('online', updateNetworkStatus);
   window.addEventListener('offline', updateNetworkStatus);
   updateNetworkStatus();
+
+  // Subscribe to real-time status updates (in case admin unblocks student)
+  subscribeStudentStatus();
 }
 
 // Start Exam click trigger (User gesture)
@@ -766,6 +803,66 @@ document.addEventListener('visibilitychange', async () => {
     await requestWakeLock();
   }
 });
+
+// Subscribe to changes on student's database record to support real-time admin unblocking
+function subscribeStudentStatus() {
+  if (!supabaseClient || !activeSession || !studentSession) return;
+
+  if (studentRealtimeChannel) {
+    studentRealtimeChannel.unsubscribe();
+  }
+
+  studentRealtimeChannel = supabaseClient
+    .channel(`student_status_${studentSession.nisn}`)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      filter: `nisn=eq.${studentSession.nisn}`,
+      schema: 'public',
+      table: 'jawaban_siswa'
+    }, payload => {
+      const newData = payload.new;
+      if (newData && newData.mapel_id === activeSession.id) {
+        if (newData.status_pengumpulan === 'normal') {
+          // If locked locally but 'normal' in DB, it means admin unblocked them!
+          const wasBlockedLocally = localStorage.getItem('smartexam_exam_submitted') === 'true' && localStorage.getItem('smartexam_exam_submit_type') === 'violation_locked';
+          if (wasBlockedLocally) {
+            localStorage.removeItem('smartexam_exam_submitted');
+            localStorage.removeItem('smartexam_exam_submit_type');
+            localStorage.removeItem('smartexam_exam_end_time');
+            examSubmitted = false;
+
+            // Hide warning & lock overlays
+            if (warningModalOverlay) warningModalOverlay.style.display = 'none';
+            if (lockOverlay) lockOverlay.style.display = 'none';
+
+            // Enable inputs
+            document.querySelectorAll('input[type="radio"]').forEach(el => el.disabled = false);
+            document.querySelectorAll('textarea').forEach(el => el.disabled = false);
+            if (btnSubmitExamBottom) {
+              btnSubmitExamBottom.disabled = false;
+              btnSubmitExamBottom.style.opacity = '';
+            }
+            if (btnSubmitExamSidebar) {
+              btnSubmitExamSidebar.disabled = false;
+              btnSubmitExamSidebar.style.opacity = '';
+            }
+
+            // Update violation count locally
+            localStorage.setItem('smartexam_violation_count', newData.violation_count);
+
+            // Re-enter fullscreen mode
+            enterFullscreen();
+
+            // Re-request wake lock
+            requestWakeLock();
+
+            showCustomAlert("Blokir Anda telah dibuka oleh Proktor. Silakan lanjutkan ujian dengan jujur!", "success");
+          }
+        }
+      }
+    })
+    .subscribe();
+}
 
 function hookTabFocusMonitoring() {
   // Visibility Change (Tab Switching / minimizing)

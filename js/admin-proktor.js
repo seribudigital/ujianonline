@@ -806,7 +806,18 @@ function renderMonitorTable() {
 
     // Set up the print report button
     let actionBtn = '';
-    if (student.status_pengumpulan !== 'normal') {
+    if (student.status_pengumpulan === 'violation_locked') {
+      actionBtn = `
+        <div style="display: flex; gap: 0.35rem; align-items: center; justify-content: center;">
+          <button class="btn btn-secondary" onclick="openPrintModal('${student.nisn}')" style="padding: 0.35rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;" title="Cetak Rapot">
+            <i data-lucide="printer" style="width: 12px; height: 12px;"></i> Cetak
+          </button>
+          <button class="btn btn-success" onclick="unblockStudent('${student.nisn}', '${escapeHtml(student.nama_siswa)}')" style="padding: 0.35rem 0.5rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem; background-color: var(--success); color: white; border: 1px solid var(--success); border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;" title="Buka Blokir Siswa">
+            <i data-lucide="unlock" style="width: 12px; height: 12px;"></i> Buka Blokir
+          </button>
+        </div>
+      `;
+    } else if (student.status_pengumpulan !== 'normal') {
       actionBtn = `
         <button class="btn" onclick="openPrintModal('${student.nisn}')" style="padding: 0.35rem 0.75rem; font-size: 0.75rem; display: flex; align-items: center; gap: 0.25rem; background-color: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-light); border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; transition: all 0.2s ease;">
           <i data-lucide="printer" style="width: 12px; height: 12px;"></i> Cetak Rapot
@@ -988,6 +999,54 @@ if (btnExportExcel) {
     }
   });
 }
+
+// Function to unblock student from proktor dashboard
+window.unblockStudent = async function(nisn, namaSiswa) {
+  if (isOfflineArchiveMode) {
+    showAlert('Tidak dapat membuka blokir dalam mode arsip offline (Read-Only).', 'danger');
+    return;
+  }
+
+  if (!supabaseClient || !idUjianAktif) {
+    showAlert('Tidak ada koneksi database atau sesi ujian aktif.', 'danger');
+    return;
+  }
+
+  const confirmMsg = `Apakah Anda yakin ingin membuka blokir siswa "${namaSiswa}" (NISN: ${nisn})?\n\nJumlah pelanggaran siswa akan di-reset menjadi 1 kali, dan statusnya akan diubah kembali menjadi "Sedang Mengerjakan" agar siswa dapat langsung melanjutkan ujian.`;
+  const confirmed = await showCustomConfirm(confirmMsg);
+  
+  if (confirmed) {
+    try {
+      showAlert(`Sedang membuka blokir siswa ${namaSiswa} di database cloud...`, 'info');
+      
+      const { error } = await supabaseClient
+        .from('jawaban_siswa')
+        .update({
+          status_pengumpulan: 'normal',
+          violation_count: 1
+        })
+        .eq('mapel_id', idUjianAktif)
+        .eq('nisn', nisn);
+
+      if (error) {
+        showAlert('Gagal membuka blokir siswa: ' + error.message, 'danger');
+        return;
+      }
+
+      // Update local state
+      if (studentsMap[nisn]) {
+        studentsMap[nisn].status_pengumpulan = 'normal';
+        studentsMap[nisn].violation_count = 1;
+      }
+      
+      renderMonitorTable();
+      showAlert(`Blokir siswa "${namaSiswa}" berhasil dibuka secara global. Siswa kini dapat melanjutkan ujian.`, 'success');
+    } catch (err) {
+      showAlert('Koneksi database cloud error: ' + err.message, 'danger');
+      console.error(err);
+    }
+  }
+};
 
 // Global variable to store currently loading student for print
 let currentStudentForPrint = null;
