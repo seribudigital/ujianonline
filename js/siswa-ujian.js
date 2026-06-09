@@ -67,6 +67,9 @@ let timerInterval = null;
 let examStarted = false;
 let examSubmitted = false;
 let isTabAway = false; // Debounce flag for tab visibility trigger
+let wakeLock = null;
+let blurTimeout = null;
+let tabAwayGraceActive = false;
 
 // Student Answers State (loaded from localStorage on init)
 let jawabanSiswa = {
@@ -340,6 +343,9 @@ btnStartExam.addEventListener('click', () => {
 
   // Enter fullscreen
   enterFullscreen();
+
+  // Request screen wake lock to prevent sleep/dimming/screensaver
+  requestWakeLock();
 
   // Start Countdown Timer
   const meta = activeSession.metadata ? activeSession.metadata : activeSession;
@@ -731,36 +737,87 @@ function hookAntiCheatKeyboards() {
   });
 }
 
+// Screen Wake Lock API helpers to prevent screensaver/sleep/dimming
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    console.log('Screen Wake Lock is active');
+  } catch (err) {
+    console.warn(`Screen Wake Lock request failed: ${err.name}, ${err.message}`);
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLock) {
+    try {
+      await wakeLock.release();
+      wakeLock = null;
+      console.log('Screen Wake Lock released');
+    } catch (err) {
+      console.error('Failed to release wake lock:', err);
+    }
+  }
+}
+
+// Re-request wake lock when page becomes visible
+document.addEventListener('visibilitychange', async () => {
+  if (examStarted && !examSubmitted && document.visibilityState === 'visible') {
+    await requestWakeLock();
+  }
+});
+
 function hookTabFocusMonitoring() {
   // Visibility Change (Tab Switching / minimizing)
   document.addEventListener('visibilitychange', handleTabFocusSwitch);
   
-  // Window Blur (Focusing other windows/apps)
+  // Window Blur (Focusing other windows/apps/OS warnings)
   window.addEventListener('blur', handleTabFocusSwitch);
 }
 
 function handleTabFocusSwitch() {
   if (!examStarted || examSubmitted) return;
 
-  if (isTabAway) return; // Prevent double trigger
-  isTabAway = true;
+  const isHidden = document.hidden;
+  const isBlurred = !document.hasFocus();
 
-  // Small delay debounce
-  setTimeout(() => {
-    const isHidden = document.hidden;
-    const isBlurred = !document.hasFocus();
-
-    if (isHidden || isBlurred) {
-      triggerViolation();
-    } else {
-      isTabAway = false;
+  if (isHidden) {
+    // Hidden means they minimized or switched tabs - trigger violation immediately
+    if (blurTimeout) {
+      clearTimeout(blurTimeout);
+      blurTimeout = null;
     }
-  }, 150);
+    if (!isTabAway) {
+      isTabAway = true;
+      triggerViolation();
+    }
+  } else if (isBlurred) {
+    // Blurred but not hidden (e.g. system notification, low battery alert, focus lost)
+    // Give a grace period of 5 seconds to regain focus
+    if (blurTimeout) return; // Already waiting
+
+    tabAwayGraceActive = true;
+    blurTimeout = setTimeout(() => {
+      if (!document.hasFocus() && !examSubmitted) {
+        if (!isTabAway) {
+          isTabAway = true;
+          triggerViolation();
+        }
+      }
+      blurTimeout = null;
+      tabAwayGraceActive = false;
+    }, 5000); // 5 seconds grace period
+  }
 }
 
 // Reset tab-away when browser focus returns
 window.addEventListener('focus', () => {
+  if (blurTimeout) {
+    clearTimeout(blurTimeout);
+    blurTimeout = null;
+  }
   isTabAway = false;
+  tabAwayGraceActive = false;
 });
 
 function triggerViolation() {
@@ -818,6 +875,15 @@ async function submitUjian(isAuto = false, submitType = 'manual') {
 
   examSubmitted = true;
   clearInterval(timerInterval);
+
+  // Release Screen Wake Lock
+  releaseWakeLock();
+
+  // Clear any pending blur timeouts
+  if (blurTimeout) {
+    clearTimeout(blurTimeout);
+    blurTimeout = null;
+  }
 
   // Save submission status
   localStorage.setItem('smartexam_exam_submitted', 'true');
